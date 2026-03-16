@@ -4,7 +4,7 @@ import MapView, { Polyline, Marker } from 'react-native-maps';
 import { useMap } from '../hooks/useMap';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function App() {
+export default function MapScreen() {
   const { 
     destination, 
     setDestination,
