@@ -16,9 +16,9 @@ export async function fetchRoute(profile: string, startCoords: number[], endCoor
     })
 
     const data = await response.json()
-    const coords = data.features[0].geometry.coordinates.map((p: number[]) => ({
-        latitude: p[1],
-        longitude: p[0]
+    const coords = data.features[0].geometry.coordinates.map(([lon, lat]: [number, number]) => ({
+        latitude: lat,
+        longitude: lon
     }))
     const routeResponse: RouteResponse = {routeCoords: coords, 
         elevation: data.features[0].properties.segments[0].ascent}
