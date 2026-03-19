@@ -1,8 +1,11 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 export default function LoginScreen() {
+  const navigation = useNavigation(); 
+
   return (
     <View style={styles.container}>
       <MaterialIcons name="person" size={64} color="#6200ee" style={styles.icon} />
@@ -11,24 +14,24 @@ export default function LoginScreen() {
 
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Sähköposti"
         keyboardType="email-address"
         autoCapitalize="none"
       />
 
-      <TextInput style={styles.input} placeholder="Password" secureTextEntry />
+      <TextInput style={styles.input} placeholder="Salasana" secureTextEntry />
 
-      <TouchableOpacity onPress={() => { /* reset-salasana logiikka */ }}>
-        <Text style={styles.forgotPassword}>Salasana unohtunut?</Text>
+      <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword" as never)}>
+       <Text style={styles.forgotPassword}>Salasana unohtunut?</Text>
       </TouchableOpacity>
 
       <Button title="Login" onPress={() => { /* login-logiikka */ }} />
 
       <View style={styles.signUpContainer}>
         <Text>Etkö ole vielä käyttäjä? </Text>
-        <TouchableOpacity onPress={() => { /* navigoi tilin luomiseen */ }}>
-          <Text style={styles.signUpText}>Luo tili</Text>
-        </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate("Register" as never)}>
+        <Text style={styles.signUpText}>Luo tili</Text>
+      </TouchableOpacity>
       </View>
     </View>
   );
