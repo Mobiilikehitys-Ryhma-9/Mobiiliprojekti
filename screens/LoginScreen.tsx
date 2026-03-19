@@ -1,10 +1,12 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../App";
 
-export default function LoginScreen() {
-  const navigation = useNavigation(); 
+type Props = NativeStackScreenProps<RootStackParamList, "Login">;
+
+export default function LoginScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
@@ -21,17 +23,24 @@ export default function LoginScreen() {
 
       <TextInput style={styles.input} placeholder="Salasana" secureTextEntry />
 
-      <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword" as never)}>
-       <Text style={styles.forgotPassword}>Salasana unohtunut?</Text>
+      <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+        <Text style={styles.forgotPassword}>Salasana unohtunut?</Text>
       </TouchableOpacity>
 
-      <Button title="Login" onPress={() => { /* login-logiikka */ }} />
+      <Button
+        title="Login"
+        onPress={() => {
+          // myöhemmin login-logiikka
+          navigation.navigate("Map"); // ✅ esim. onnistuneen login jälkeen
+        }}
+      />
 
       <View style={styles.signUpContainer}>
         <Text>Etkö ole vielä käyttäjä? </Text>
-      <TouchableOpacity onPress={() => navigation.navigate("Register" as never)}>
-        <Text style={styles.signUpText}>Luo tili</Text>
-      </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <Text style={styles.signUpText}>Luo tili</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

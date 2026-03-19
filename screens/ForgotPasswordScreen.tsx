@@ -1,28 +1,29 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert, StyleSheet, ActivityIndicator } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../App";
 
-export default function ForgotPasswordScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, "ForgotPassword">;
+
+export default function ForgotPasswordScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigation = useNavigation();
 
   const handleReset = () => {
-    if (!email) {
+    if (!email.trim()) {
       Alert.alert("Virhe", "Syötä sähköposti");
       return;
     }
 
     setLoading(true);
 
-    // Mock-toiminto: “lähetetään” sähköpostia 1 sekunti
     setTimeout(() => {
       setLoading(false);
       Alert.alert(
         "Sähköposti lähetetty",
         "Jos sähköposti löytyy, saat ohjeet pian."
       );
-      navigation.navigate("Login" as never);
+      navigation.navigate("Login");
     }, 1000);
   };
 
@@ -32,12 +33,12 @@ export default function ForgotPasswordScreen() {
 
       <TextInput
         style={styles.input}
-        placeholder="Säköposti"
+        placeholder="Sähköposti"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
-        editable={!loading} // ei voi kirjoittaa kun loading
+        editable={!loading}
       />
 
       {loading ? (
@@ -46,7 +47,7 @@ export default function ForgotPasswordScreen() {
         <Button
           title="Lähetä palautuslinkki"
           onPress={handleReset}
-          disabled={!email.trim()} // nappi ei ole aktiivinen jos tyhjä
+          disabled={!email.trim()}
         />
       )}
     </View>
