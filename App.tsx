@@ -13,4 +13,4 @@ export default function App() {
   );
 }
 
-//tämä on vain testaamista varten
+//tämä on vain testaamista varten - siirretään sitten mapscreeniin

@@ -1,30 +1,41 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, TouchableOpacity, View, Button, Image } from "react-native";
-import { useEffect, useState } from "react";
-import { useRef } from "react";
-import {CameraView, CameraType, useCameraPermissions} from "expo-camera";
+import { useEffect, useState, useRef  } from "react";
+import { CameraView, Camera } from "expo-camera";
 
 type Props = {
   onPictureTaken: (uri: string) => void
 };
 
 export default function PinUpCamera({onPictureTaken}: Props) {
-  const cameraRef = useRef<CameraView>(null)
-  const [permission, requestPermission] = useCameraPermissions();
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const cameraRef = useRef<CameraView>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(null)
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null)
 
 
-  if (!permission?.granted) {
-    requestPermission();
-    return <View />
-  }
+useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync()
+      setHasPermission(status === "granted")
+    })()
+  }, [])
+
+  if (hasPermission === null) return <View />
+  if (hasPermission === false)
+    return (
+      <View style={styles.container}>
+        <Text>No access to camera</Text>
+      </View>
+    );
 
   const takePicture = async () => {
-    const photo = await cameraRef.current?.takePictureAsync()
-    if(photo) {
-        setPhotoUri(photo.uri)
+    if (cameraRef.current) {
+    const photo = await cameraRef.current.takePictureAsync()
+    if (photo.uri) {
+      setPhotoUri(photo.uri)
     }
   }
+};
 
   if (photoUri) {
     return (
@@ -41,7 +52,7 @@ export default function PinUpCamera({onPictureTaken}: Props) {
 
    return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} ref={cameraRef} />
+      <CameraView style={styles.camera} ref={cameraRef}/>
       
       <View style={styles.controls}>
         <Button title="Go Back" onPress={() => onPictureTaken("")} />

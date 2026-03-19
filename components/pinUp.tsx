@@ -1,62 +1,101 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Modal, Pressable, TextInput, Image } from 'react-native';
 import React, {useState} from 'react';
+import * as Location from 'expo-location';
 import PinUpCamera from './pinUpCamera';
 import { MapPin } from "../types/Pin";
+import { Picker } from '@react-native-picker/picker';
 
 type Props = {
-  pins: MapPin[];
-  setPins: React.Dispatch<React.SetStateAction<MapPin[]>>;
+  pins: MapPin[]
+  setPins: React.Dispatch<React.SetStateAction<MapPin[]>>
 };
 
 export default function PinUp({pins, setPins}: Props) {
 const [ModalVisible, setModalVisible] = useState(false)
 const [Pinmessage, setPinmessage] = useState('')
 const [imageUri, setImageUri] = useState<string | undefined>();
-const [showCamera, setShowCamera] = useState(false);
+const [showCamera, setShowCamera] = useState(false)
+const [isSaving, setIsSaving] = useState(false)
+const [category, setCategory] = useState<"short" | "medium" | "long">("medium")
 
-const savePin = () => {
-   if (!Pinmessage.trim() && !imageUri) return;
+const CATEGORY_DURATION = {
+  short: 1 * 60 * 1000,     // 1 min
+  medium: 5 * 60 * 1000,    // 5 min
+  long: 60 * 60 * 1000      // 1 h
+}
+
+const savePin = async () => {
+  if (isSaving) return
+
+  if (!Pinmessage.trim() && !imageUri) return
+
+  setIsSaving(true)
+
+  try {
+  const { status } = await Location.requestForegroundPermissionsAsync()
+    if (status !== 'granted') {
+    console.log("Permission denied")
+    return
+  }
+
+  const location = await Location.getCurrentPositionAsync({})
+  const duration = CATEGORY_DURATION[category]
   
-   const newPin: MapPin = {
+  const newPin: MapPin = {
     message: Pinmessage,
-    image: imageUri
+    image: imageUri,
+    latitude: location.coords.latitude,
+    longitude: location.coords.longitude,
+    category: category,
+    expiresAt: Date.now() + duration
   };
 
-  setPins([...pins, newPin]);
+  setPins(prev => [...prev, newPin])
+  setPinmessage('')
+  setImageUri(undefined)
+  setModalVisible(false)
+  
+} finally {
+    setIsSaving(false)
+  }
+};
+
+const cancelPin = () => {
   setPinmessage('')
   setImageUri(undefined)
   setModalVisible(false)
 };
 
-const cancelPin = () => {
-  setPinmessage('');
-  setImageUri(undefined);
-  setModalVisible(false);
-};
-
 const handlePictureTaken = (uri: string) => {
-   setShowCamera(false);
+   setShowCamera(false)
   if (uri) {
-    setImageUri(uri);
+    setImageUri(uri)
   }
-  setModalVisible(true);
+  setModalVisible(true)
 };
 
-if (showCamera) {
-  return <PinUpCamera onPictureTaken={handlePictureTaken} />;
-}
+React.useEffect(() => {
+  const interval = setInterval(() => {
+    const now = Date.now()
+
+    setPins(prev => prev.filter(pin => pin.expiresAt > now))
+  }, 1000)
+
+  return () => clearInterval(interval)
+}, [setPins])
+
+  if (showCamera) {
+    return <PinUpCamera onPictureTaken={handlePictureTaken} />
+  }
 
   return (
     <View style={styles.container}>
-      
       <Pressable
         style={styles.openButton}
         onPress={() => setModalVisible(true)}>
         <Text style={styles.showText}>Add Pin</Text>
       </Pressable>
-
-      <Text>Message: {Pinmessage}</Text>
 
       <Modal
       animationType='slide'
@@ -80,16 +119,31 @@ if (showCamera) {
           style={styles.cameraButton}
           onPress={() => {
           setModalVisible(false);
-          setShowCamera(true);
+          setTimeout(() => setShowCamera(true), 50) // small delay to ensure modal unmounts
           }}
         >
           <Text style={styles.closeText}>Camera</Text>
           </Pressable>
 
+          <View style={styles.picker}>
+            <Picker
+            selectedValue={category}
+            onValueChange={(itemValue) => 
+              setCategory(itemValue as "short" | "medium" | "long")}
+            >
+            <Picker.Item label='Tien este (1 min)' value='short' />
+            <Picker.Item label='Liikenne (5 min)' value='medium' />
+            <Picker.Item label='Maasto (1 hour)' value='long' />
+            </Picker>
+          </View>
+
             <Pressable
               style={styles.closeButton}
-              onPress={savePin}>
-              <Text style={styles.closeText}>Save</Text>
+              onPress={savePin}
+              disabled={isSaving}>
+              <Text style={styles.closeText}>
+                {isSaving ? "Saving..." : "Save"}
+              </Text>
             </Pressable>
 
           <Pressable
@@ -110,7 +164,9 @@ if (showCamera) {
 
         {pins.map((pin, index) => (
         <View key={index} style={{marginTop:20}}>
-        <Text>{pin.message}</Text>
+        <Text>Message: {pin.message}</Text>
+
+        <Text>Location: {pin.latitude}, {pin.longitude}</Text>
 
         {pin.image && (
         <Image
@@ -118,12 +174,13 @@ if (showCamera) {
         style={{ width: 200, height: 200 }}
       />
     )}
-  </View>
+      </View>
 ))}
       <StatusBar style="auto" />
     </View>
-  );
+  )
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -171,5 +228,12 @@ const styles = StyleSheet.create({
   },
   cameraButton:{
 
+  },
+  picker:{
+  width: "100%",
+  marginVertical: 10,
+  borderWidth: 1,
+  borderColor: "#ccc",
+  borderRadius: 8
   }
 });
