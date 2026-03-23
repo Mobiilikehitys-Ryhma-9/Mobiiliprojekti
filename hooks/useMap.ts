@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { fetchRoute } from '../services/routeService';
 import { RoutePoint, RouteResponse } from '../types/route';
@@ -31,6 +31,8 @@ export function useMap() {
 
             const data = await fetchRoute(profile, start, end)
             setRoute(data)
+        } catch (err) {
+            console.error('Route search exception:',err)
         } finally {
             setLoading(false)
         }
@@ -52,7 +54,7 @@ export function useMap() {
             return null
         }
     }
-    
+
     return { 
         startLocation,
         setStartLocation,
