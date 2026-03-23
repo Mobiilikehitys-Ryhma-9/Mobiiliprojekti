@@ -20,6 +20,7 @@ export default function MapScreen() {
     loading
   } = useMap()
   const mapRef = useRef<MapView>(null)
+  const isLoggedIn: boolean = false
 
   useEffect(() => {
     if (!route?.routeCoords?.length) return 
@@ -101,7 +102,13 @@ export default function MapScreen() {
       </MapView>
       <View style={styles.info}>
         <Text>
-          Korkeusero: {route ? route.elevation.toFixed(1) : 0.0} m
+          Reitistä laskettu: {route ? route.steepnessSummaryAmount : 0} %
+        </Text>
+        <Text>
+          Jyrkkyysarvo: {route ? route.steepnessSummaryValue : 0} %
+        </Text>
+        <Text>
+          Etäisyys: {route ? route.steepnessSummaryDistance : 0} m
         </Text>
       </View>
       <StatusBar style="auto" />
