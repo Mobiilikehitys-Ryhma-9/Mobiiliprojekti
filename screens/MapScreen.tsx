@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, Image, } from 'react-native';
 import { TextInput, RadioButton, Button, ActivityIndicator} from 'react-native-paper';
 import MapView, { Polyline, Marker, Callout } from 'react-native-maps';
-import { Profile, useMap } from '../hooks/useMap';
+import { useMap } from '../hooks/useMap';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import PinUp from '../components/pinUp';
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   info: {
-    padding: 10,
+    padding: 11,
     backgroundColor: 'white'
   },
   fab: {
