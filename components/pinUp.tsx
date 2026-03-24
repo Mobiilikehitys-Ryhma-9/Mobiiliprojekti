@@ -9,9 +9,14 @@ import { Picker } from '@react-native-picker/picker';
 type Props = {
   pins: MapPin[]
   setPins: React.Dispatch<React.SetStateAction<MapPin[]>>
+<<<<<<< Updated upstream
+=======
+  visible: boolean
+  onClose: () => void
+>>>>>>> Stashed changes
 };
 
-export default function PinUp({pins, setPins}: Props) {
+export default function PinUp({pins, setPins, visible, onClose}: Props) {
 const [ModalVisible, setModalVisible] = useState(false)
 const [Pinmessage, setPinmessage] = useState('')
 const [imageUri, setImageUri] = useState<string | undefined>();
@@ -52,6 +57,7 @@ const savePin = async () => {
   };
 
   setPins(prev => [...prev, newPin])
+<<<<<<< Updated upstream
   setPinmessage('')
   setImageUri(undefined)
   setModalVisible(false)
@@ -62,11 +68,26 @@ const savePin = async () => {
 };
 
 const cancelPin = () => {
+=======
+>>>>>>> Stashed changes
   setPinmessage('')
   setImageUri(undefined)
-  setModalVisible(false)
+  onClose()
+  
+} finally {
+    setIsSaving(false)
+  }
 };
 
+<<<<<<< Updated upstream
+=======
+const cancelPin = () => {
+  setPinmessage('')
+  setImageUri(undefined)
+  onClose()
+};
+
+>>>>>>> Stashed changes
 const handlePictureTaken = (uri: string) => {
    setShowCamera(false)
   if (uri) {
@@ -91,19 +112,25 @@ React.useEffect(() => {
 
   return (
     <View style={styles.container}>
+<<<<<<< Updated upstream
       <Pressable
         style={styles.openButton}
         onPress={() => setModalVisible(true)}>
         <Text style={styles.showText}>Add Pin</Text>
       </Pressable>
+=======
+{/*       <Pressable
+        style={styles.openButton}
+        onPress={() => setModalVisible(true)}>
+        <Text style={styles.showText}>Add Pin</Text>
+      </Pressable> */}
+>>>>>>> Stashed changes
 
       <Modal
       animationType='slide'
       transparent={true}
-      visible={ModalVisible}
-      onRequestClose={() => {
-        setModalVisible(false)
-      }}>
+      visible={visible}
+      onRequestClose={onClose}>
 
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
@@ -118,8 +145,13 @@ React.useEffect(() => {
           <Pressable
           style={styles.cameraButton}
           onPress={() => {
+<<<<<<< Updated upstream
           setModalVisible(false);
           setTimeout(() => setShowCamera(true), 50) // small delay to ensure modal unmounts
+=======
+          onClose()
+          setTimeout(() => setShowCamera(true), 50)
+>>>>>>> Stashed changes
           }}
         >
           <Text style={styles.closeText}>Camera</Text>
@@ -162,8 +194,14 @@ React.useEffect(() => {
       </View>
       </Modal>
 
+<<<<<<< Updated upstream
         {pins.map((pin, index) => (
         <View key={index} style={{marginTop:20}}>
+=======
+         {pins.map((pin, index) => (
+        <View key={index} 
+        style={{marginTop:20}}>
+>>>>>>> Stashed changes
         <Text>Message: {pin.message}</Text>
 
         <Text>Location: {pin.latitude}, {pin.longitude}</Text>
