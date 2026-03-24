@@ -1,12 +1,18 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { TextInput, RadioButton, Button, ActivityIndicator } from 'react-native-paper';
 import MapView, { Polyline, Marker } from 'react-native-maps';
 import { Profile, useMap } from '../hooks/useMap';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PinUp from '../components/pinUp'
+import { MapPin } from '../types/Pin';
 
-export default function MapScreen() {
+type MapProps = {
+  isLoggedIn: boolean
+}
+
+export default function MapScreen({ isLoggedIn }: MapProps) {
   const {
     startLocation,
     setStartLocation,
@@ -20,7 +26,8 @@ export default function MapScreen() {
     loading
   } = useMap()
   const mapRef = useRef<MapView>(null)
-  const isLoggedIn: boolean = false
+  const [pins, setPins] = useState<MapPin[]>([])
+  const [selectedLocation, setSelectedLocation] = useState<{latitude: number, longitude: number} | null>(null)
 
   useEffect(() => {
     if (!route?.routeCoords?.length) return 
@@ -74,6 +81,10 @@ export default function MapScreen() {
         Hae Reitti
       </Button>
 
+      {isLoggedIn && selectedLocation && (
+        <PinUp pins={pins} setPins={setPins} location={selectedLocation} />
+      )}
+
       {loading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size='large' />
@@ -87,17 +98,35 @@ export default function MapScreen() {
           longitude: (routePoints?.start[0] ?? 25.47),
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
-        }}>
+        }}
+        onPress={(e) => { setSelectedLocation(e.nativeEvent.coordinate) }}>
         {routePoints && (
           <>
             <Marker coordinate={{ latitude: routePoints.start[1], longitude: routePoints.start[0] }} />
             <Marker coordinate={{ latitude: routePoints.end[1], longitude: routePoints.end[0] }} />
           </>
         )}
+
+        {pins.map((pin, index) => {
+          return (
+          <Marker key={index}
+            coordinate={{
+              latitude: pin.latitude,
+              longitude: pin.longitude
+            }}
+            title={pin.message} />
+        )})}
+
         {route && (
           <Polyline coordinates={route.routeCoords}
             strokeWidth={4}
             strokeColor="blue" />
+        )}
+        
+        {selectedLocation && (
+          <Marker coordinate={selectedLocation}
+            pinColor='yellow'
+            title='uusi pin' />
         )}
       </MapView>
       <View style={styles.info}>
