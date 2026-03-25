@@ -11,16 +11,67 @@ export async function fetchRoute(profile: string, startCoords: number[], endCoor
         },
         body: JSON.stringify({
             coordinates: [startCoords, endCoords],
-            elevation: true
+            extra_info: ["steepness"]
         })
     })
 
     const data = await response.json()
-    const coords = data.features[0].geometry.coordinates.map(([lon, lat]: [number, number]) => ({
+
+    const feature = data.features?.[0]
+    
+    const coords = feature?.geometry.coordinates.map(
+        ([lon, lat]: [number, number]) => ({
         latitude: lat,
         longitude: lon
     }))
-    const routeResponse: RouteResponse = {routeCoords: coords, 
-        elevation: data.features[0].properties.segments[0].ascent}
-    return routeResponse
+
+    const steepness = feature?.properties.extras?.steepness
+
+    const steepnessValues: number[] = steepness?.values || []
+    const steepnessSummary = steepness?.summary[0]
+    let steepnessSummaryValue: number = steepnessSummary.value || 0
+    switch (steepnessSummaryValue) {
+        case -5:
+            steepnessSummaryValue = -16
+            break
+        case -4:
+            steepnessSummaryValue = -10
+            break
+        case -3:
+            steepnessSummaryValue = -7
+            break
+        case -2:
+            steepnessSummaryValue = -4
+            break
+        case -1:
+            steepnessSummaryValue = -1
+            break
+        case 0:
+            steepnessSummaryValue = 0
+            break
+        case 1:
+            steepnessSummaryValue = 1
+            break
+        case 2:
+            steepnessSummaryValue = 4
+            break
+        case 3:
+            steepnessSummaryValue = 7
+            break
+        case 4:
+            steepnessSummaryValue = 10
+            break
+        case 5:
+            steepnessSummaryValue = 16
+            break
+    }
+    const steepnessSummaryDistance: number = steepnessSummary.distance || 0
+    const steepnessSummaryAmount: number = steepnessSummary.amount || 0
+    return {
+        routeCoords: coords,
+        steepnessValues,
+        steepnessSummaryValue,
+        steepnessSummaryDistance,
+        steepnessSummaryAmount
+    }
 }

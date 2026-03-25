@@ -7,5 +7,8 @@ export type RoutePoint = {
 
 export type RouteResponse = {
     routeCoords: LatLng[]
-    elevation: number
+    steepnessValues: number[]
+    steepnessSummaryValue: number
+    steepnessSummaryDistance: number
+    steepnessSummaryAmount: number
 }
