@@ -3,4 +3,6 @@ export type MapPin = {
   image?: string;
   latitude: number;
   longitude: number;
+  category: 'short' | 'medium' | 'long'
+  expiresAt: number
 };

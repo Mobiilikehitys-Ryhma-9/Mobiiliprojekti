@@ -27,7 +27,7 @@ export default function MapScreen({ isLoggedIn }: MapProps) {
   } = useMap()
   const mapRef = useRef<MapView>(null)
   const [pins, setPins] = useState<MapPin[]>([])
-  const [selectedLocation, setSelectedLocation] = useState<{latitude: number, longitude: number} | null>(null)
+  const [showPinDialog, setShowPinDialog] = useState(false)
 
   useEffect(() => {
     if (!route?.routeCoords?.length) return 
@@ -81,8 +81,8 @@ export default function MapScreen({ isLoggedIn }: MapProps) {
         Hae Reitti
       </Button>
 
-      {isLoggedIn && selectedLocation && (
-        <PinUp pins={pins} setPins={setPins} location={selectedLocation} />
+      {isLoggedIn && (
+        <Button onPress={() => setShowPinDialog(true)}>Lisää ilmoitus</Button>
       )}
 
       {loading && (
@@ -98,8 +98,7 @@ export default function MapScreen({ isLoggedIn }: MapProps) {
           longitude: (routePoints?.start[0] ?? 25.47),
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
-        }}
-        onPress={(e) => { setSelectedLocation(e.nativeEvent.coordinate) }}>
+        }}>
         {routePoints && (
           <>
             <Marker coordinate={{ latitude: routePoints.start[1], longitude: routePoints.start[0] }} />
@@ -123,12 +122,15 @@ export default function MapScreen({ isLoggedIn }: MapProps) {
             strokeColor="blue" />
         )}
         
-        {selectedLocation && (
+        {/* {selectedLocation && (
           <Marker coordinate={selectedLocation}
             pinColor='yellow'
             title='uusi pin' />
-        )}
+        )} */}
       </MapView>
+      <PinUp pins={pins} setPins={setPins}
+        visible={showPinDialog}
+        onClose={() => setShowPinDialog(false)} />
       <View style={styles.info}>
         <Text>
           Reitistä laskettu: {route ? route.steepnessSummaryAmount : 0} %

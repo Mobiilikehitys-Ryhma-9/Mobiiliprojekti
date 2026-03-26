@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { fetchRoute } from '../services/routeService';
+import { fetchRoute, fetchRouteWithAvoidFeatures } from '../services/routeService';
 import { RoutePoint, RouteResponse } from '../types/route';
 
 const API_KEY = process.env.EXPO_PUBLIC_ORS_API_KEY
@@ -12,8 +12,8 @@ const end: [number, number] = [25.470582, 65.012075]
 export type Profile = 'foot-walking' | 'wheelchair'
 
 export function useMap() {
-    const [startLocation, setStartLocation] = useState<string>('')
-    const [destination, setDestination] = useState<string>('')
+    const [startLocation, setStartLocation] = useState<string>('meritullinraitti 1 oulu')
+    const [destination, setDestination] = useState<string>('torikatu 32 oulu')
     const [routePoints, setRoutePoints] = useState<RoutePoint | null>(null)
     const [route, setRoute] = useState<RouteResponse | null>(null)
     const [profile, setProfile] = useState<Profile>('foot-walking')
@@ -29,7 +29,8 @@ export function useMap() {
 
             setRoutePoints({ start, end })
 
-            const data = await fetchRoute(profile, start, end)
+            //const data = await fetchRoute(profile, start, end)
+            const data = await fetchRouteWithAvoidFeatures(start, end)
             setRoute(data)
         } catch (err) {
             console.error('Route search exception:',err)
