@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet, Alert } from "react-native"; 
 import { MaterialIcons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
+import { auth } from "../services/firebase"; 
+import { createUserWithEmailAndPassword } from "firebase/auth"; 
 
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
 
@@ -48,17 +50,19 @@ export default function RegisterScreen({ navigation }: Props) {
     );
   }, [confirmPassword, password]);
 
-  const handleRegister = () => {
+  const handleRegister = async () => { 
     if (emailError || passwordError || confirmError) {
       console.log("Virheitä lomakkeessa");
       return;
     }
 
-    // Firebase-logiikka myöhemmin
-    console.log("Rekisteröinti:", email, password);
-
-    // esim. siirrytään loginiin rekisteröinnin jälkeen
-    navigation.navigate("Login");
+    try { 
+      await createUserWithEmailAndPassword(auth, email, password);
+      Alert.alert("Onnistui", "Tili luotu!");
+      navigation.navigate("Login"); 
+    } catch (error: any) {
+      Alert.alert("Virhe", error.message); 
+    }
   };
 
   return (
@@ -98,7 +102,7 @@ export default function RegisterScreen({ navigation }: Props) {
       />
       {confirmError ? <Text style={styles.error}>{confirmError}</Text> : null}
 
-      <Button title="Rekisteröidy" onPress={handleRegister} />
+      <Button title="Rekisteröidy" onPress={handleRegister} /> 
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
         <Text style={styles.backToLogin}>Takaisin kirjautumiseen</Text>
