@@ -6,14 +6,16 @@ import PinUpCamera from './pinUpCamera';
 import { MapPin } from "../types/Pin";
 import { Picker } from '@react-native-picker/picker';
 
+
 type Props = {
   pins: MapPin[];
   setPins: React.Dispatch<React.SetStateAction<MapPin[]>>;
   visible: boolean
   onClose: () => void
+  onCameraOpen?: (open: boolean) => void;
 };
 
-export default function PinUp({ pins, setPins, visible, onClose }: Props) {
+export default function PinUp({ pins, setPins, visible, onClose, onCameraOpen }: Props) {
   const [ModalVisible, setModalVisible] = useState(false)
   const [Pinmessage, setPinmessage] = useState('')
   const [imageUri, setImageUri] = useState<string | undefined>();
@@ -26,6 +28,7 @@ export default function PinUp({ pins, setPins, visible, onClose }: Props) {
     medium: 5 * 60 * 1000,    // 5 min
     long: 60 * 60 * 1000      // 1 h
   }
+  
 
   const savePin = async () => {
     if (isSaving) return
@@ -71,6 +74,7 @@ export default function PinUp({ pins, setPins, visible, onClose }: Props) {
 
   const handlePictureTaken = (uri: string) => {
     setShowCamera(false)
+     onCameraOpen?.(false) 
     if (uri) {
       setImageUri(uri)
     }
@@ -82,7 +86,7 @@ export default function PinUp({ pins, setPins, visible, onClose }: Props) {
       const now = Date.now()
 
       setPins(prev => prev.filter(pin => pin.expiresAt > now))
-    }, 1000)
+    }, 10000)
 
     return () => clearInterval(interval)
   }, [setPins])
@@ -93,12 +97,6 @@ export default function PinUp({ pins, setPins, visible, onClose }: Props) {
 
   return (
     <View style={styles.container}>
-      {/*       <Pressable
-        style={styles.openButton}
-        onPress={() => setModalVisible(true)}>
-        <Text style={styles.showText}>Add Pin</Text>
-      </Pressable> */}
-
       <Modal
         animationType='slide'
         transparent={true}
@@ -113,17 +111,17 @@ export default function PinUp({ pins, setPins, visible, onClose }: Props) {
               value={Pinmessage}
               onChangeText={setPinmessage}
             />
-
-
-            <Pressable
+            
+            <Button
               style={styles.cameraButton}
+              icon="camera"
+              mode="outlined"
               onPress={() => {
-                onClose()
-                setTimeout(() => setShowCamera(true), 50)
-              }}
+                onCameraOpen?.(true)
+                setShowCamera(true)}}
             >
               <Text style={styles.closeText}>Camera</Text>
-            </Pressable>
+            </Button>
 
             <View style={styles.picker}>
               <Picker
@@ -137,19 +135,19 @@ export default function PinUp({ pins, setPins, visible, onClose }: Props) {
               </Picker>
             </View>
 
-            <Pressable
+            <Button
               style={styles.closeButton}
               onPress={savePin}
               disabled={isSaving}>
               <Text style={styles.closeText}>
                 {isSaving ? "Saving..." : "Save"}
               </Text>
-            </Pressable>
+            </Button>
 
-            <Pressable
+            <Button
               onPress={cancelPin}>
               <Text style={styles.closeText}>Cancel</Text>
-            </Pressable>
+            </Button>
 
             {imageUri && (
               <Image
@@ -161,22 +159,6 @@ export default function PinUp({ pins, setPins, visible, onClose }: Props) {
           </View>
         </View>
       </Modal>
-
-      {pins.map((pin, index) => (
-        <View key={index}
-          style={{ marginTop: 20 }}>
-          <Text>Messag: {pin.message}</Text>
-
-          <Text>Location: {pin.latitude}, {pin.longitude}</Text>
-
-          {pin.image && (
-            <Image
-              source={{ uri: pin.image }}
-              style={{ width: 200, height: 200 }}
-            />
-          )}
-        </View>
-      ))}
     </View>
   )
 }
@@ -200,11 +182,12 @@ const styles = StyleSheet.create({
 
   },
   modalView: {
-    height: '50%',
     width: '90%',
-    backgroundColor: 'rgb(255, 255, 255)',
+    backgroundColor: 'white',
     padding: 20,
-    borderRadius: 5
+    borderRadius: 16,
+    elevation: 5,
+    gap: 12
   },
   modalText: {
     marginBottom: 15,
@@ -233,5 +216,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8
-  }
+  },
 });
