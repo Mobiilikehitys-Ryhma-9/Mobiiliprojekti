@@ -8,15 +8,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PinUp from '../components/pinUp'
 import { MapPin } from '../types/Pin';
 
+
 type MapProps = {
   isLoggedIn: boolean
 }
 
-export default function MapScreen({ isLoggedIn }: MapProps) {
+export default function MapScreen({ isLoggedIn}: MapProps) {
   const {
     startLocation,
     setStartLocation,
-    destination, 
+    destination,
     setDestination,
     routePoints,
     route,
@@ -27,11 +28,11 @@ export default function MapScreen({ isLoggedIn }: MapProps) {
   } = useMap()
   const mapRef = useRef<MapView>(null)
   const [pins, setPins] = useState<MapPin[]>([])
-  const [selectedLocation, setSelectedLocation] = useState<{latitude: number, longitude: number} | null>(null)
+  const [selectedLocation, setSelectedLocation] = useState<{ latitude: number, longitude: number } | null>(null)
 
   useEffect(() => {
-    if (!route?.routeCoords?.length) return 
-    
+    if (!route?.routeCoords?.length) return
+
     mapRef.current?.fitToCoordinates(route.routeCoords, {
       edgePadding: {
         top: 100,
@@ -45,22 +46,22 @@ export default function MapScreen({ isLoggedIn }: MapProps) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TextInput style={{marginBottom: 2}} 
+      <TextInput style={{ marginBottom: 2 }}
         placeholder='Lähtö'
         value={startLocation}
         onChangeText={setStartLocation}
         mode='outlined'
-        onSubmitEditing={() => {}} />
-      <TextInput style={{marginBottom: 2}}
+        onSubmitEditing={() => { }} />
+      <TextInput style={{ marginBottom: 2 }}
         placeholder='Määränpää'
         value={destination}
         onChangeText={setDestination}
         mode='outlined'
-        onSubmitEditing={() => {}} />
+        onSubmitEditing={() => { }} />
 
       <RadioButton.Group onValueChange={
-          (value: string) => setProfile(value as Profile)
-        }
+        (value: string) => setProfile(value as Profile)
+      }
         value={profile}>
         <View style={styles.option}>
           <RadioButton value='foot-walking' />
@@ -71,12 +72,12 @@ export default function MapScreen({ isLoggedIn }: MapProps) {
           <Text>Pyörätuoli</Text>
         </View>
       </RadioButton.Group>
-      
+
       <Button mode='contained'
-        icon='magnify' 
+        icon='magnify'
         loading={loading}
         disabled={loading}
-        style={{marginVertical: 8, alignSelf: 'center'}}
+        style={{ marginVertical: 8, alignSelf: 'center' }}
         onPress={handleRouteSearch}>
         Hae Reitti
       </Button>
@@ -109,20 +110,21 @@ export default function MapScreen({ isLoggedIn }: MapProps) {
 
         {pins.map((pin, index) => {
           return (
-          <Marker key={index}
-            coordinate={{
-              latitude: pin.latitude,
-              longitude: pin.longitude
-            }}
-            title={pin.message} />
-        )})}
+            <Marker key={index}
+              coordinate={{
+                latitude: pin.latitude,
+                longitude: pin.longitude
+              }}
+              title={pin.message} />
+          )
+        })}
 
         {route && (
           <Polyline coordinates={route.routeCoords}
             strokeWidth={4}
             strokeColor="blue" />
         )}
-        
+
         {selectedLocation && (
           <Marker coordinate={selectedLocation}
             pinColor='yellow'
@@ -142,6 +144,7 @@ export default function MapScreen({ isLoggedIn }: MapProps) {
       </View>
       <StatusBar style="auto" />
     </SafeAreaView>
+
   );
 }
 
