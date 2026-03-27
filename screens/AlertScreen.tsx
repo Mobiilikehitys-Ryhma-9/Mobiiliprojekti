@@ -3,9 +3,6 @@ import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet, FlatList }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from "@expo/vector-icons";
 import PinUp from '../components/pinUp';
-import { RootTabParamList } from '../types/navigation';
-import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-
 
 
 const mockAlerts = [
@@ -18,9 +15,6 @@ const mockAlerts = [
   { id: 7, title: 'Lumi', description: 'Tiellä on lunta', time: '16:45' },
   { id: 8, title: 'Lumi', description: 'Tiellä on lunta', time: '16:45' },
 ];
-
-type Props = BottomTabScreenProps<RootTabParamList, 'Alerts'>;
-
 
 export default function AlertScreen() {
   return (

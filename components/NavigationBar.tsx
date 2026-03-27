@@ -1,10 +1,6 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { View, Text, TouchableOpacity, StyleSheet, Button } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator, BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from '../types/navigation';
-
-import { NavigationProps } from '../types/navigationProps';
 
 import MapScreen from '../screens/MapScreen';
 import AlertScreen from '../screens/AlertScreen';
@@ -16,9 +12,9 @@ export type HomeProps = BottomTabScreenProps<RootTabParamList, 'Home'>;
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-    function HomeWrapper(props: HomeProps) {
-        return <MapScreen {...props} isLoggedIn={true} />;
-    }
+function MapWrapper(props: HomeProps) {
+    return <MapScreen {...props} isLoggedIn={true} />;
+}
 
 export default function NavigationBar() {
 
@@ -27,7 +23,7 @@ export default function NavigationBar() {
         <Tab.Navigator>
             <Tab.Screen
                 name="Home"
-                component={HomeWrapper}
+                component={MapWrapper}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <MaterialIcons name="map" size={size} color={color} />

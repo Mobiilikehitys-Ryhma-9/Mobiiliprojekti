@@ -8,7 +8,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PinUp from '../components/pinUp'
 import { MapPin } from '../types/Pin';
 
-
 type MapProps = {
   isLoggedIn: boolean
 }
@@ -144,7 +143,6 @@ export default function MapScreen({ isLoggedIn}: MapProps) {
       </View>
       <StatusBar style="auto" />
     </SafeAreaView>
-
   );
 }
 
