@@ -1,12 +1,27 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet } from "react-native";
+import React, { useState } from "react"; 
+import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet, Alert } from "react-native"; 
 import { MaterialIcons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
+import { signInWithEmailAndPassword } from "firebase/auth"; 
+import { auth } from "../services/firebase"; 
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 export default function LoginScreen({ navigation }: Props) {
+
+  const [email, setEmail] = useState(""); 
+  const [password, setPassword] = useState(""); 
+
+  const handleLogin = async () => { 
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      Alert.alert("Onnistui", "Kirjautuminen onnistui");
+      navigation.navigate("Map"); 
+    } catch (error: any) {
+      Alert.alert("Virhe", "Väärä sähköposti tai salasana");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -17,11 +32,19 @@ export default function LoginScreen({ navigation }: Props) {
       <TextInput
         style={styles.input}
         placeholder="Sähköposti"
+        value={email} 
+        onChangeText={setEmail} 
         keyboardType="email-address"
         autoCapitalize="none"
       />
 
-      <TextInput style={styles.input} placeholder="Salasana" secureTextEntry />
+      <TextInput
+        style={styles.input}
+        placeholder="Salasana"
+        value={password} 
+        onChangeText={setPassword} 
+        secureTextEntry
+      />
 
       <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
         <Text style={styles.forgotPassword}>Salasana unohtunut?</Text>
@@ -29,10 +52,7 @@ export default function LoginScreen({ navigation }: Props) {
 
       <Button
         title="Login"
-        onPress={() => {
-          // myöhemmin login-logiikka
-          navigation.navigate("Map"); // ✅ esim. onnistuneen login jälkeen
-        }}
+        onPress={handleLogin} 
       />
 
       <View style={styles.signUpContainer}>

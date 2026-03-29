@@ -8,9 +8,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 
-type Props = NativeStackScreenProps<RootStackParamList, "Map">;
+import { auth } from "../services/firebase"; 
+import { signOut } from "firebase/auth"; 
 
-export default function MapScreen({ navigation }: Props) {
+type Props = NativeStackScreenProps<RootStackParamList, "Map"> & {
+  user: any; 
+};
+
+export default function MapScreen({ navigation, user }: Props) { 
 
   const {
     startLocation,
@@ -41,15 +46,26 @@ export default function MapScreen({ navigation }: Props) {
     });
   }, [route?.routeCoords]);
 
+  const handleLogout = async () => { 
+    await signOut(auth);
+    navigation.navigate("Login");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
 
-      {/* ✅ LOGIN NAPPI */}
       <View style={styles.loginButton}>
-        <Button
-          title="Kirjaudu sisään"
-          onPress={() => navigation.navigate("Login")}
-        />
+        {user ? ( 
+          <Button
+            title="Kirjaudu ulos"
+            onPress={handleLogout}
+          />
+        ) : (
+          <Button
+            title="Kirjaudu sisään"
+            onPress={() => navigation.navigate("Login")}
+          />
+        )}
       </View>
 
       {/* INPUTIT */}
@@ -67,7 +83,7 @@ export default function MapScreen({ navigation }: Props) {
         onChangeText={setDestination}
       />
 
-      {/* PROFILE VALINTA (yksinkertaistettu) */}
+      {/* PROFILE VALINTA */}
       <View style={styles.optionRow}>
         <Button
           title="Kävely"
