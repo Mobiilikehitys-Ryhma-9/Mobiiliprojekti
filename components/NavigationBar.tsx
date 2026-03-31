@@ -4,8 +4,9 @@ import { RootTabParamList } from '../types/navigation';
 
 import MapScreen from '../screens/MapScreen';
 import AlertScreen from '../screens/AlertScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
-export type HomeProps = BottomTabScreenProps<RootTabParamList, 'Home'>;
+export type HomeProps = BottomTabScreenProps<RootTabParamList, 'Map'>;
 
 //type HomeTabNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Home'>;
 //type AlertsTabNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Alerts'>;
@@ -20,9 +21,19 @@ export default function NavigationBar() {
 
     return (
 
-        <Tab.Navigator>
+        <Tab.Navigator initialRouteName='Map'>
+
+                        <Tab.Screen name="Profile" component={ProfileScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialIcons name="person" size={size} color={color} />
+                    ),
+                    animation: 'fade'
+                }}
+            />
+
             <Tab.Screen
-                name="Home"
+                name="Map"
                 component={MapWrapper}
                 options={{
                     tabBarIcon: ({ color, size }) => (
