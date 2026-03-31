@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
-import { fetchRoute, fetchRouteWithAvoidFeatures } from '../services/routeService';
+import { fetchFootwalkRoute, fetchWheelchairRoute } from '../services/routeService';
 import { RoutePoint, RouteResponse } from '../types/route';
+import { MapPin } from "../types/Pin";
 
 const API_KEY = process.env.EXPO_PUBLIC_ORS_API_KEY
 
@@ -12,26 +13,37 @@ const end: [number, number] = [25.470582, 65.012075]
 export type Profile = 'foot-walking' | 'wheelchair'
 
 export function useMap() {
-    const [startLocation, setStartLocation] = useState<string>('meritullinraitti 1 oulu')
-    const [destination, setDestination] = useState<string>('torikatu 32 oulu')
+    const [startLocation, setStartLocation] = useState<string>('')
+    const [destination, setDestination] = useState<string>('')
     const [routePoints, setRoutePoints] = useState<RoutePoint | null>(null)
     const [route, setRoute] = useState<RouteResponse | null>(null)
     const [profile, setProfile] = useState<Profile>('foot-walking')
+    const [obstaclePins, setObstaclePins] = useState<MapPin[]>([])
     const [loading, setLoading] = useState<boolean>(false)
 
     const handleRouteSearch = async () => {
         setLoading(true)
+        const start = await geoCodeAddress(startLocation)
+        const end = await geoCodeAddress(destination)
+        
         try {
-            const start = await geoCodeAddress(startLocation)
-            const end = await geoCodeAddress(destination)
-
             if (!start || !end) return
-
+            
+            let data: RouteResponse
             setRoutePoints({ start, end })
 
-            //const data = await fetchRoute(profile, start, end)
-            const data = await fetchRouteWithAvoidFeatures(start, end)
-            setRoute(data)
+            if (profile === 'foot-walking') {
+                data = await fetchFootwalkRoute(start, end)
+                setRoute(data)
+            } else if (profile === 'wheelchair') {
+                if (!obstaclePins || obstaclePins.length < 1) {0
+                    data = await fetchWheelchairRoute(start, end)
+                    setRoute(data)
+                } else {
+                    data = await fetchWheelchairRoute(start, end, obstaclePins)
+                    setRoute(data)
+                }
+            }
         } catch (err) {
             console.error('Route search exception:',err)
         } finally {
@@ -55,7 +67,7 @@ export function useMap() {
             return null
         }
     }
-
+    
     return { 
         startLocation,
         setStartLocation,
@@ -65,6 +77,8 @@ export function useMap() {
         route,
         profile,
         setProfile,
+        obstaclePins,
+        setObstaclePins,
         handleRouteSearch,
         loading
     } as const

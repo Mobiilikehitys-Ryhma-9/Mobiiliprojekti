@@ -1,13 +1,14 @@
-import { LatLng } from "react-native-maps"
-
 export type RoutePoint = {
     start: [number, number]
     end: [number, number]
 }
 
+export type RouteOption = {
+    coords: { latitude: number, longitude: number }[]
+}
+
 export type RouteResponse = {
-    routeCoords: LatLng[]
-    steepnessValues: number[]
+    routes: RouteOption[]
     steepnessSummaryValue: number
     steepnessSummaryDistance: number
     steepnessSummaryAmount: number
