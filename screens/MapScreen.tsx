@@ -2,14 +2,12 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View, Image } from "react-native";
 import {
-  TextInput,
   Button,
   ActivityIndicator,
-  FAB,
-  RadioButton
+  FAB
 } from "react-native-paper";
 import MapView, { Polyline, Marker } from "react-native-maps";
-import { Profile, useMap } from "../hooks/useMap";
+import { useMap } from "../hooks/useMap";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PinUp from "../components/pinUp";
 import { MapPin } from "../types/Pin";
@@ -19,6 +17,8 @@ import { RootStackParamList } from '../App';
 
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
+
+import MapControls from "../components/MapControls";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Map"> & {
   user: any;
@@ -38,13 +38,12 @@ export default function MapScreen({ navigation, user }: Props) {
     obstaclePins,
     setObstaclePins,
     handleRouteSearch,
-    loading,
+    loading
   } = useMap();
   const mapRef = useRef<MapView>(null);
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [showInputs, setShowInputs] = useState(true)
 
   useEffect(() => {
     if (!route?.routes?.length) return;
@@ -109,9 +108,7 @@ export default function MapScreen({ navigation, user }: Props) {
         })}
       </MapView>
 
-      {showInputs && (
-        <View style={styles.topPanel}>
-          <View style={styles.loginButton}>
+      <View style={styles.loginButton}>
             {user ? (
               <Button
                 onPress={handleLogout}>Kirjaudu ulos</Button>
@@ -121,46 +118,15 @@ export default function MapScreen({ navigation, user }: Props) {
             )}
           </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Lähtö"
-            value={startLocation}
-            onChangeText={setStartLocation}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Määränpää"
-            value={destination}
-            onChangeText={setDestination}
-          />
-
-          <RadioButton.Group onValueChange={
-            (value: string) => setProfile(value as Profile)
-          }
-            value={profile}>
-            <View style={styles.option}>
-              <RadioButton value='foot-walking' />
-              <Text>Kävely</Text>
-            </View>
-            <View style={styles.option}>
-              <RadioButton value='wheelchair' />
-              <Text>Pyörätuoli</Text>
-            </View>
-          </RadioButton.Group>
-
-          <Button
-            mode="contained"
-            icon="magnify"
-            loading={loading}
-            disabled={loading}
-            style={{ marginVertical: 8, alignSelf: "center" }}
-            onPress={handleRouteSearch}
-          >
-            Hae Reitti
-          </Button>
-        </View>
-      )}
+      <MapControls 
+        startLocation={startLocation}
+        setStartLocation={setStartLocation}
+        destination={destination}
+        setDestination={setDestination}
+        profile={profile}
+        setProfile={setProfile}
+        handleRouteSearch={handleRouteSearch}
+        loading={loading} />
 
       {loading && (
         <View style={styles.loadingOverlay}>
@@ -228,31 +194,6 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
     minHeight: 600
-  },
-  topPanel: {
-    position: "absolute",
-    top: 30,
-    left: 10,
-    right: 10,
-    backgroundColor: "white",
-    padding: 10,
-    borderRadius: 12,
-    elevation: 5,
-  },
-  input: {
-    height: 30,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    margin: 5,
-    borderRadius: 8,
-    marginVertical: 4
-  },
-  option: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 4
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
