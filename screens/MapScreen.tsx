@@ -6,7 +6,7 @@ import {
   Button,
   ActivityIndicator,
   FAB,
-  RadioButton
+  RadioButton,
 } from "react-native-paper";
 import MapView, { Polyline, Marker } from "react-native-maps";
 import { Profile, useMap } from "../hooks/useMap";
@@ -14,18 +14,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PinUp from "../components/pinUp";
 import { MapPin } from "../types/Pin";
 
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../App';
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../App";
 
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
+import PinUpCamera from "../components/pinUpCamera";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Map"> & {
   user: any;
 };
 
 export default function MapScreen({ navigation, user }: Props) {
-
   const {
     startLocation,
     setStartLocation,
@@ -44,12 +44,13 @@ export default function MapScreen({ navigation, user }: Props) {
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [showInputs, setShowInputs] = useState(true)
+  const [showInputs, setShowInputs] = useState(true);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!route?.routes?.length) return;
 
-    const allCoords = route.routes.flatMap(r => r.coords)
+    const allCoords = route.routes.flatMap((r) => r.coords);
 
     mapRef.current?.fitToCoordinates(allCoords, {
       edgePadding: {
@@ -68,56 +69,71 @@ export default function MapScreen({ navigation, user }: Props) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, cameraOpen && { paddingBottom: 0 }]}>
+    <SafeAreaView
+      style={[styles.container, cameraOpen && { paddingBottom: 0 }]}
+    >
       <MapView
         ref={mapRef}
         style={styles.map}
         initialRegion={{
-          latitude: (routePoints?.start[1] ?? 65.01),
-          longitude: (routePoints?.start[0] ?? 25.47),
+          latitude: routePoints?.start[1] ?? 65.01,
+          longitude: routePoints?.start[0] ?? 25.47,
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
       >
         {routePoints && (
           <>
-            <Marker coordinate={{ latitude: routePoints.start[1], longitude: routePoints.start[0] }} />
-            <Marker coordinate={{ latitude: routePoints.end[1], longitude: routePoints.end[0] }} />
+            <Marker
+              coordinate={{
+                latitude: routePoints.start[1],
+                longitude: routePoints.start[0],
+              }}
+            />
+            <Marker
+              coordinate={{
+                latitude: routePoints.end[1],
+                longitude: routePoints.end[0],
+              }}
+            />
           </>
         )}
 
         {obstaclePins.map((pin, index) => (
-          <Marker key={index}
+          <Marker
+            key={index}
             coordinate={{
               latitude: pin.latitude,
-              longitude: pin.longitude
+              longitude: pin.longitude,
             }}
             pinColor="#f57600"
-            onPress={() => setSelectedPin(pin)} />
+            onPress={() => setSelectedPin(pin)}
+          />
         ))}
 
         {route?.routes?.map((r, index) => {
-          const colors = ['#007AFF', '#34C759', '#FF9500']
+          const colors = ["#007AFF", "#34C759", "#FF9500"];
 
           return (
-            <Polyline key={index}
+            <Polyline
+              key={index}
               coordinates={r.coords}
               strokeWidth={index === 0 ? 4 : 2}
-              strokeColor={colors[index] || 'gray'}
+              strokeColor={colors[index] || "gray"}
             />
-          )
+          );
         })}
       </MapView>
 
-      {showInputs && (
+      {!cameraOpen && showInputs && (
         <View style={styles.topPanel}>
           <View style={styles.loginButton}>
             {user ? (
-              <Button
-                onPress={handleLogout}>Kirjaudu ulos</Button>
+              <Button onPress={handleLogout}>Kirjaudu ulos</Button>
             ) : (
-              <Button
-                onPress={() => navigation.navigate("Login")}>Kirjaudu sisään</Button>
+              <Button onPress={() => navigation.navigate("Login")}>
+                Kirjaudu sisään
+              </Button>
             )}
           </View>
 
@@ -135,16 +151,16 @@ export default function MapScreen({ navigation, user }: Props) {
             onChangeText={setDestination}
           />
 
-          <RadioButton.Group onValueChange={
-            (value: string) => setProfile(value as Profile)
-          }
-            value={profile}>
+          <RadioButton.Group
+            onValueChange={(value: string) => setProfile(value as Profile)}
+            value={profile}
+          >
             <View style={styles.option}>
-              <RadioButton value='foot-walking' />
+              <RadioButton value="foot-walking" />
               <Text>Kävely</Text>
             </View>
             <View style={styles.option}>
-              <RadioButton value='wheelchair' />
+              <RadioButton value="wheelchair" />
               <Text>Pyörätuoli</Text>
             </View>
           </RadioButton.Group>
@@ -196,10 +212,26 @@ export default function MapScreen({ navigation, user }: Props) {
       <PinUp
         pins={obstaclePins}
         setPins={setObstaclePins}
-        visible={showPinDialog}
+        visible={showPinDialog && !cameraOpen}
         onClose={() => setShowPinDialog(false)}
         onCameraOpen={setCameraOpen}
+        imageUri={capturedImage}
+        setImageUri={setCapturedImage}
       />
+
+      {cameraOpen && (
+        <View style={StyleSheet.absoluteFillObject}>
+          <PinUpCamera
+            onPictureTaken={(uri) => {
+              setCameraOpen(false);
+              setShowPinDialog(true);
+              if (uri) {
+                setCapturedImage(uri);
+              }
+            }}
+          />
+        </View>
+      )}
 
       {!cameraOpen && (
         <>
@@ -207,12 +239,8 @@ export default function MapScreen({ navigation, user }: Props) {
             <Text>
               Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
             </Text>
-            <Text>
-              Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %
-            </Text>
-            <Text>
-              Matka: {route?.steepnessSummaryDistance ?? 0} m
-            </Text>
+            <Text>Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %</Text>
+            <Text>Matka: {route?.steepnessSummaryDistance ?? 0} m</Text>
           </View>
         </>
       )}
@@ -227,7 +255,7 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    minHeight: 600
+    minHeight: 600,
   },
   topPanel: {
     position: "absolute",
@@ -242,28 +270,28 @@ const styles = StyleSheet.create({
   input: {
     height: 30,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     padding: 10,
     margin: 5,
     borderRadius: 8,
-    marginVertical: 4
+    marginVertical: 4,
   },
   option: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 4
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 4,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(255,255,255,0.6)",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10
+    zIndex: 10,
   },
 
   loginButton: {
-    padding: 8
+    padding: 8,
   },
 
   info: {
@@ -273,7 +301,7 @@ const styles = StyleSheet.create({
     right: 12,
     backgroundColor: "white",
     padding: 10,
-    maxHeight: 80
+    maxHeight: 80,
   },
   fab: {
     position: "absolute",
