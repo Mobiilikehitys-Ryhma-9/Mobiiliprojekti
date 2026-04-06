@@ -2,14 +2,12 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View, Image } from "react-native";
 import {
-  TextInput,
   Button,
   ActivityIndicator,
-  FAB,
-  RadioButton,
+  FAB
 } from "react-native-paper";
 import MapView, { Polyline, Marker } from "react-native-maps";
-import { Profile, useMap } from "../hooks/useMap";
+import { useMap } from "../hooks/useMap";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PinUp from "../components/pinUp";
 import { MapPin } from "../types/Pin";
@@ -20,6 +18,8 @@ import { RootStackParamList } from "../App";
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
 import PinUpCamera from "../components/pinUpCamera";
+
+import MapControls from "../components/MapControls";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Map"> & {
   user: any;
@@ -39,6 +39,7 @@ export default function MapScreen({ navigation, user }: Props) {
     setObstaclePins,
     handleRouteSearch,
     loading,
+    routeWarning
   } = useMap();
   const mapRef = useRef<MapView>(null);
   const [showPinDialog, setShowPinDialog] = useState(false);
@@ -72,59 +73,6 @@ export default function MapScreen({ navigation, user }: Props) {
     <SafeAreaView
       style={[styles.container, cameraOpen && { paddingBottom: 0 }]}
     >
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        initialRegion={{
-          latitude: routePoints?.start[1] ?? 65.01,
-          longitude: routePoints?.start[0] ?? 25.47,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }}
-      >
-        {routePoints && (
-          <>
-            <Marker
-              coordinate={{
-                latitude: routePoints.start[1],
-                longitude: routePoints.start[0],
-              }}
-            />
-            <Marker
-              coordinate={{
-                latitude: routePoints.end[1],
-                longitude: routePoints.end[0],
-              }}
-            />
-          </>
-        )}
-
-        {obstaclePins.map((pin, index) => (
-          <Marker
-            key={index}
-            coordinate={{
-              latitude: pin.latitude,
-              longitude: pin.longitude,
-            }}
-            pinColor="#f57600"
-            onPress={() => setSelectedPin(pin)}
-          />
-        ))}
-
-        {route?.routes?.map((r, index) => {
-          const colors = ["#007AFF", "#34C759", "#FF9500"];
-
-          return (
-            <Polyline
-              key={index}
-              coordinates={r.coords}
-              strokeWidth={index === 0 ? 4 : 2}
-              strokeColor={colors[index] || "gray"}
-            />
-          );
-        })}
-      </MapView>
-
       {!cameraOpen && showInputs && (
         <View style={styles.topPanel}>
           <View style={styles.loginButton}>
@@ -137,46 +85,15 @@ export default function MapScreen({ navigation, user }: Props) {
             )}
           </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Lähtö"
-            value={startLocation}
-            onChangeText={setStartLocation}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Määränpää"
-            value={destination}
-            onChangeText={setDestination}
-          />
-
-          <RadioButton.Group
-            onValueChange={(value: string) => setProfile(value as Profile)}
-            value={profile}
-          >
-            <View style={styles.option}>
-              <RadioButton value="foot-walking" />
-              <Text>Kävely</Text>
-            </View>
-            <View style={styles.option}>
-              <RadioButton value="wheelchair" />
-              <Text>Pyörätuoli</Text>
-            </View>
-          </RadioButton.Group>
-
-          <Button
-            mode="contained"
-            icon="magnify"
-            loading={loading}
-            disabled={loading}
-            style={{ marginVertical: 8, alignSelf: "center" }}
-            onPress={handleRouteSearch}
-          >
-            Hae Reitti
-          </Button>
-        </View>
-      )}
+      <MapControls 
+        startLocation={startLocation}
+        setStartLocation={setStartLocation}
+        destination={destination}
+        setDestination={setDestination}
+        profile={profile}
+        setProfile={setProfile}
+        handleRouteSearch={handleRouteSearch}
+        loading={loading} />
 
       {loading && (
         <View style={styles.loadingOverlay}>
@@ -236,11 +153,25 @@ export default function MapScreen({ navigation, user }: Props) {
       {!cameraOpen && (
         <>
           <View style={styles.info}>
-            <Text>
+            {routeWarning && (
+              <Text>
+                {routeWarning}
+              </Text>
+            )}
+            {/* <Text>
               Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
+            </Text> */}
+            <Text>
+              Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %
             </Text>
-            <Text>Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %</Text>
-            <Text>Matka: {route?.steepnessSummaryDistance ?? 0} m</Text>
+            <Text>
+              Matka: {route?.steepnessSummaryDistance ?? 0} m
+            </Text>
+            {route?.hasCobblestone && (
+              <Text>
+                Reitillä todennäköisesti mukulakiveä
+              </Text>
+            )}
           </View>
         </>
       )}
@@ -256,31 +187,6 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
     minHeight: 600,
-  },
-  topPanel: {
-    position: "absolute",
-    top: 30,
-    left: 10,
-    right: 10,
-    backgroundColor: "white",
-    padding: 10,
-    borderRadius: 12,
-    elevation: 5,
-  },
-  input: {
-    height: 30,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    margin: 5,
-    borderRadius: 8,
-    marginVertical: 4,
-  },
-  option: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 4,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

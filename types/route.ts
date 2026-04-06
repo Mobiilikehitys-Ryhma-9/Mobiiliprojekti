@@ -12,4 +12,5 @@ export type RouteResponse = {
     steepnessSummaryValue: number
     steepnessSummaryDistance: number
     steepnessSummaryAmount: number
+    hasCobblestone: boolean
 }
