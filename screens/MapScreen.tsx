@@ -73,8 +73,51 @@ export default function MapScreen({ navigation, user }: Props) {
     <SafeAreaView
       style={[styles.container, cameraOpen && { paddingBottom: 0 }]}
     >
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={{
+          latitude: (routePoints?.start[1] ?? 65.01),
+          longitude: (routePoints?.start[0] ?? 25.47),
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }}
+      >
+        {routePoints && (
+          <>
+            <Marker coordinate={{ latitude: routePoints.start[1], longitude: routePoints.start[0] }} />
+            <Marker coordinate={{ latitude: routePoints.end[1], longitude: routePoints.end[0] }} />
+          </>
+        )}
+
+        {obstaclePins.map((pin, index) => (
+          <Marker
+            key={index}
+            coordinate={{
+              latitude: pin.latitude,
+              longitude: pin.longitude,
+            }}
+            pinColor="#f57600"
+            onPress={() => setSelectedPin(pin)}
+          />
+        ))}
+
+        {route?.routes?.map((r, index) => {
+          const colors = ['#007AFF', '#34C759', '#FF9500'];
+
+          return (
+            <Polyline
+              key={index}
+              coordinates={r.coords}
+              strokeWidth={index === 0 ? 4 : 2}
+              strokeColor={colors[index] || 'gray'}
+            />
+          );
+        })}
+      </MapView>
+
       {!cameraOpen && showInputs && (
-        <View style={styles.topPanel}>
+        <>
           <View style={styles.loginButton}>
             {user ? (
               <Button onPress={handleLogout}>Kirjaudu ulos</Button>
@@ -85,15 +128,17 @@ export default function MapScreen({ navigation, user }: Props) {
             )}
           </View>
 
-      <MapControls 
-        startLocation={startLocation}
-        setStartLocation={setStartLocation}
-        destination={destination}
-        setDestination={setDestination}
-        profile={profile}
-        setProfile={setProfile}
-        handleRouteSearch={handleRouteSearch}
-        loading={loading} />
+          <MapControls
+            startLocation={startLocation}
+            setStartLocation={setStartLocation}
+            destination={destination}
+            setDestination={setDestination}
+            profile={profile}
+            setProfile={setProfile}
+            handleRouteSearch={handleRouteSearch}
+            loading={loading} />
+        </>
+      )}
 
       {loading && (
         <View style={styles.loadingOverlay}>
@@ -207,7 +252,7 @@ const styles = StyleSheet.create({
     right: 12,
     backgroundColor: "white",
     padding: 10,
-    maxHeight: 80,
+    maxHeight: 140,
   },
   fab: {
     position: "absolute",
