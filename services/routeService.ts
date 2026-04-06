@@ -11,7 +11,12 @@ export async function fetchFootwalkRoute(startCoords: number[], endCoords: numbe
         },
         body: JSON.stringify({
             coordinates: [startCoords, endCoords],
-            extra_info: ["steepness"]
+            extra_info: ["steepness"],
+            alternative_routes: {
+                target_count: 3, //= reittivahtoehtojen määrä
+                weight_factor: 1.6, //= kerroin, kuinka paljon pidempi saa reitti korkeintaan olla
+                share_factor: 0.6 //= kerroin, kuinka paljon reitti korkeintaan saa mennä samaa tietä
+            }
         })
     })
 
@@ -50,7 +55,8 @@ export async function fetchFootwalkRoute(startCoords: number[], endCoords: numbe
         routes,
         steepnessSummaryValue,
         steepnessSummaryDistance: summary?.distance ?? 0,
-        steepnessSummaryAmount: summary?.amount ?? 0
+        steepnessSummaryAmount: summary?.amount ?? 0,
+        hasCobblestone: false
     }
 }
 
@@ -61,7 +67,7 @@ export async function fetchWheelchairRoute(startCoords: number[], endCoords: num
 
     const requestBody: any = {
         coordinates: [startCoords, endCoords],            
-            extra_info: ["steepness"],
+            extra_info: ["steepness","surface"],
             alternative_routes: {
                 target_count: 3, //= reittivahtoehtojen määrä
                 weight_factor: 1.6, //= kerroin, kuinka paljon pidempi saa reitti korkeintaan olla
@@ -119,6 +125,8 @@ export async function fetchWheelchairRoute(startCoords: number[], endCoords: num
     }))
 
     const feature = data.features[0]
+
+    // Jyrkkyys?
     const steepness = feature?.properties.extras?.steepness
     const summary = steepness?.summary?.[0]
     let steepnessSummaryValue = summary?.value ?? 0
@@ -135,11 +143,21 @@ export async function fetchWheelchairRoute(startCoords: number[], endCoords: num
         case 4: steepnessSummaryValue = 10; break
         case 5: steepnessSummaryValue = 16; break
     }
+
+    // Tarkistus onko reitillä mukulakiveä
+    const surface = feature?.properties.extras?.surface
+    let hasCobblestone = false
+    if (surface?.values) {
+        hasCobblestone = surface.values.some(
+            ([_, __, surfaceId]: [number, number, number]) => surfaceId === 14
+        )
+    }
     
     return {
         routes,
         steepnessSummaryValue,
         steepnessSummaryDistance: summary?.distance ?? 0,
-        steepnessSummaryAmount: summary?.amount ?? 0
+        steepnessSummaryAmount: summary?.amount ?? 0,
+        hasCobblestone
     }
 }

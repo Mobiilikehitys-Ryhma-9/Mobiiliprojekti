@@ -179,6 +179,11 @@ export default function MapScreen({ navigation, user }: Props) {
             <Text>
               Matka: {route?.steepnessSummaryDistance ?? 0} m
             </Text>
+            {route?.hasCobblestone && (
+              <Text>
+                Reitillä todennäköisesti mukulakiveä
+              </Text>
+            )}
           </View>
         </>
       )}
@@ -214,7 +219,7 @@ const styles = StyleSheet.create({
     right: 12,
     backgroundColor: "white",
     padding: 10,
-    maxHeight: 80
+    maxHeight: 120
   },
   fab: {
     position: "absolute",
