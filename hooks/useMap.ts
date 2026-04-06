@@ -20,9 +20,11 @@ export function useMap() {
     const [profile, setProfile] = useState<Profile>('foot-walking')
     const [obstaclePins, setObstaclePins] = useState<MapPin[]>([])
     const [loading, setLoading] = useState<boolean>(false)
+    const [routeWarning, setRouteWarning] = useState<string | null>(null)
 
     const handleRouteSearch = async () => {
         setLoading(true)
+        setRouteWarning(null)
         const start = await geoCodeAddress(startLocation)
         const end = await geoCodeAddress(destination)
         
@@ -36,16 +38,21 @@ export function useMap() {
                 data = await fetchFootwalkRoute(start, end)
                 setRoute(data)
             } else if (profile === 'wheelchair') {
-                if (!obstaclePins || obstaclePins.length < 1) {0
-                    data = await fetchWheelchairRoute(start, end)
+                try {
+                    data = obstaclePins?.length 
+                        ? await fetchWheelchairRoute(start, end, obstaclePins)
+                        : await fetchWheelchairRoute(start, end)
                     setRoute(data)
-                } else {
-                    data = await fetchWheelchairRoute(start, end, obstaclePins)
+                } catch (err) {
+                    console.log('Wheelchair route fetch failed, falling back to walking route')
+                    data = await fetchFootwalkRoute(start, end)
                     setRoute(data)
+                    setRouteWarning('Esteetöntä reittiä pyörätuolille ei löytynyt. Näytetään kävelyreitti.')
                 }
             }
         } catch (err) {
-            console.error('Route search exception:',err)
+            console.error('Route search exception:', err)
+            setRouteWarning('Reitin haku epäonnistui')
         } finally {
             setLoading(false)
         }
@@ -80,6 +87,7 @@ export function useMap() {
         obstaclePins,
         setObstaclePins,
         handleRouteSearch,
-        loading
+        loading,
+        routeWarning
     } as const
 }

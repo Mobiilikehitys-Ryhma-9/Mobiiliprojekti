@@ -38,7 +38,8 @@ export default function MapScreen({ navigation, user }: Props) {
     obstaclePins,
     setObstaclePins,
     handleRouteSearch,
-    loading
+    loading,
+    routeWarning
   } = useMap();
   const mapRef = useRef<MapView>(null);
   const [showPinDialog, setShowPinDialog] = useState(false);
@@ -170,9 +171,14 @@ export default function MapScreen({ navigation, user }: Props) {
       {!cameraOpen && (
         <>
           <View style={styles.info}>
-            <Text>
+            {routeWarning && (
+              <Text>
+                {routeWarning}
+              </Text>
+            )}
+            {/* <Text>
               Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
-            </Text>
+            </Text> */}
             <Text>
               Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %
             </Text>
