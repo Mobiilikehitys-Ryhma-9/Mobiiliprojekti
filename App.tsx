@@ -11,12 +11,14 @@ import LoginScreen from './screens/LoginScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import RegisterScreen from "./screens/RegisterScreen";
 import MapScreen from "./screens/MapScreen";
+import ProfileScreen from "./screens/ProfileScreen";
 
 export type RootStackParamList = {
   Map: undefined;
   Login: undefined;
   ForgotPassword: undefined;
   Register: undefined;
+  Profile: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -46,6 +48,7 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
 
       <StatusBar style="auto" />
