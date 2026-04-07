@@ -62,8 +62,21 @@ export default function MapControls({
         return null
         }
     }
+
+  return (
+  <>
+    <Pressable
+      style={styles.toggleButton}
+      onPress={() => setShowInputs(prev => !prev)}
+    >
+      <MaterialIcons
+        name={showInputs ? "close" : "search"}
+        size={26}
+        color="white"
+      />
+    </Pressable>
     
-    if (showInputs) return (
+    {showInputs && (
         <View style={styles.container}>
           <View style={styles.inputWrapper}>
             <TextInput
@@ -116,7 +129,9 @@ export default function MapControls({
             Hae Reitti
           </Button>
         </View>
-      )
+      )}
+      </>
+    )
 }
 
 const styles = StyleSheet.create({
@@ -156,5 +171,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 4
   },
+  toggleButton: {
+    position: "absolute",
+    top: 45,
+    right: 20,
+    backgroundColor: "#333",
+    padding: 10,
+    borderRadius: 50,
+    zIndex: 10,
+    elevation: 6,
+},
 
 })
