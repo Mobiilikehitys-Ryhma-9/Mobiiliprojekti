@@ -1,8 +1,34 @@
 import { useState, useEffect } from "react"
 import { MaterialIcons, Ionicons } from '@expo/vector-icons'
 import { View, Text, Image, TextInput, TouchableOpacity, Button, StyleSheet, FlatList } from "react-native"
+<<<<<<< Updated upstream
+=======
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../App";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../services/firebase";
+
+type Props = NativeStackScreenProps<RootStackParamList, "Register">;
+>>>>>>> Stashed changes
 
 export default function ProfileScreen() {
+
+    const [userName, setUsername] = useState("");
+
+    useEffect(() => {
+        const fetchUsername = async () => {
+            const ref = doc(db, "users", "testUser");
+            const snap = await getDoc(ref);
+
+            if (snap.exists()) {
+                const name = snap.data().username;
+                console.log("Username:", snap.data().username);
+                setUsername(name);
+            }
+        }
+
+        fetchUsername();
+    }, [])
 
     // dummy alertit että tietää miltä lista näyttää käytännössä
     // Oikeasti ne sitten haettaisiin firebasesta, joka vaatii oman funktion totta kai..
@@ -65,7 +91,11 @@ export default function ProfileScreen() {
                 />
 
                 <View>
+<<<<<<< Updated upstream
                     <Text style={styles.username}>Username</Text> { /* Hae käyttäjänimi firebasesta */}
+=======
+                    <Text style={styles.username}>{userName}</Text> { /* Hae käyttäjänimi oikeasti firebasesta */}
+>>>>>>> Stashed changes
                     <View style={styles.likeContainer}>
                         <MaterialIcons name="thumb-up" size={24} color="green" />
                         <Text>{likes}</Text>
