@@ -5,12 +5,11 @@ export type RoutePoint = {
 
 export type RouteOption = {
     coords: { latitude: number, longitude: number }[]
+    steepnessSummaryValue: number
+    steepnessSummaryDistance: number
+    steepnessSummaryAmount: number
 }
 
 export type RouteResponse = {
     routes: RouteOption[]
-    steepnessSummaryValue: number
-    steepnessSummaryDistance: number
-    steepnessSummaryAmount: number
-    hasCobblestone: boolean
 }
