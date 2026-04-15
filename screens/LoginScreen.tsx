@@ -1,8 +1,34 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet, Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../App";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../services/firebase";
 
-export default function LoginScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, "Login">;
+
+export default function LoginScreen({ navigation }: Props) {
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      Alert.alert("Onnistui", "Kirjautuminen onnistui");
+      
+    //takaisin alkuun
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Map" }],
+      });
+
+    } catch (error: any) {
+      Alert.alert("Virhe", "Väärä sähköposti tai salasana");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <MaterialIcons name="person" size={64} color="#6200ee" style={styles.icon} />
@@ -11,22 +37,34 @@ export default function LoginScreen() {
 
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Sähköposti"
+        value={email}
+        onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
       />
 
-      <TextInput style={styles.input} placeholder="Password" secureTextEntry />
+      <TextInput
+        style={styles.input}
+        placeholder="Salasana"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
 
-      <TouchableOpacity onPress={() => { /* reset-salasana logiikka */ }}>
+      <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
         <Text style={styles.forgotPassword}>Salasana unohtunut?</Text>
       </TouchableOpacity>
 
-      <Button title="Login" onPress={() => { /* login-logiikka */ }} />
+      <Button
+        title="Login"
+        onPress={handleLogin}
+      />
 
       <View style={styles.signUpContainer}>
         <Text>Etkö ole vielä käyttäjä? </Text>
-        <TouchableOpacity onPress={() => { /* navigoi tilin luomiseen */ }}>
+
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
           <Text style={styles.signUpText}>Luo tili</Text>
         </TouchableOpacity>
       </View>

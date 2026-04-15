@@ -1,29 +1,30 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { createBottomTabNavigator, BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from '../types/navigation';
 
 import MapScreen from '../screens/MapScreen';
 import AlertScreen from '../screens/AlertScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
-export type HomeProps = BottomTabScreenProps<RootTabParamList, 'Map'>;
-
-//type HomeTabNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Home'>;
-//type AlertsTabNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Alerts'>;
+type MapWrapperProps = BottomTabScreenProps<RootTabParamList, 'Map'>;
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-function MapWrapper(props: HomeProps) {
-    return <MapScreen {...props} isLoggedIn={true} />;
-}
+export default function NavigationBar({ user }: { user: any }) {
 
-export default function NavigationBar() {
+    function MapWrapper(props: MapWrapperProps) {
+        return <MapScreen {...props} user={user} />;
+    }
+
+    function ProfileWrapper(props: any) {
+        return <ProfileScreen {...props} user={user} />;
+    }
 
     return (
 
         <Tab.Navigator initialRouteName='Map'>
 
-                        <Tab.Screen name="Profile" component={ProfileScreen}
+            <Tab.Screen name="Profile" component={ProfileWrapper}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <MaterialIcons name="person" size={size} color={color} />

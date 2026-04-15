@@ -1,103 +1,162 @@
-import { StyleSheet, Text, View, Modal, Pressable, Image } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
-import React, { useState } from 'react';
-import PinUpCamera from './pinUpCamera';
+import { StyleSheet, Text, View, Modal, Pressable, Image } from "react-native";
+import { TextInput, Button } from "react-native-paper";
+import React, { useState } from "react";
+import * as Location from "expo-location";
+import PinUpCamera from "./pinUpCamera";
 import { MapPin } from "../types/Pin";
+import { Picker } from "@react-native-picker/picker";
 
 type Props = {
   pins: MapPin[];
   setPins: React.Dispatch<React.SetStateAction<MapPin[]>>;
-  location: {
-    latitude: number;
-    longitude: number;
-  }
+  visible: boolean;
+  onClose: () => void;
+  onCameraOpen?: (open: boolean) => void;
+  imageUri?: string | null;
+  setImageUri?: (uri: string | null) => void;
 };
 
-export default function PinUp({ pins, setPins, location }: Props) {
-  const [ModalVisible, setModalVisible] = useState(false)
-  const [Pinmessage, setPinmessage] = useState('')
-  const [imageUri, setImageUri] = useState<string | undefined>();
+export default function PinUp({
+  pins,
+  setPins,
+  visible,
+  onClose,
+  onCameraOpen,
+  imageUri,
+  setImageUri,
+}: Props) {
+  const [ModalVisible, setModalVisible] = useState(false);
+  const [Pinmessage, setPinmessage] = useState("");
   const [showCamera, setShowCamera] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [category, setCategory] = useState<"short" | "medium" | "long">(
+    "medium",
+  );
 
-  const savePin = () => {
-    if (!Pinmessage.trim() && !imageUri) return;
+  const CATEGORY_DURATION = {
+    short: 1 * 60 * 1000, // 1 min
+    medium: 5 * 60 * 1000, // 5 min
+    long: 60 * 60 * 1000, // 1 h
+  };
 
-    const newPin: MapPin = {
-      message: Pinmessage,
-      image: imageUri,
-      latitude: location.latitude,
-      longitude: location.longitude
-    };
+  const savePin = async () => {
+    if (isSaving) return;
 
-    setPins([...pins, newPin]);
-    setPinmessage('')
-    setImageUri(undefined)
-    setModalVisible(false)
+    if (!Pinmessage.trim() && !imageUri) {
+      alert("Lisää teksti tai kuva");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission denied");
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const duration = CATEGORY_DURATION[category];
+
+      const newPin: MapPin = {
+        message: Pinmessage,
+        image: imageUri ?? undefined,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        category: category,
+        expiresAt: Date.now() + duration,
+      };
+
+      setPins((prev) => [...prev, newPin]);
+      setPinmessage("");
+      setImageUri?.(null);
+      onClose();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const cancelPin = () => {
-    setPinmessage('');
-    setImageUri(undefined);
-    setModalVisible(false);
+    setPinmessage("");
+    setImageUri?.(null);
+    onClose();
   };
 
   const handlePictureTaken = (uri: string) => {
     setShowCamera(false);
+    onCameraOpen?.(false);
     if (uri) {
-      setImageUri(uri);
+      setImageUri?.(uri);
     }
     setModalVisible(true);
   };
 
-  if (showCamera) {
-    return <PinUpCamera onPictureTaken={handlePictureTaken} />;
-  }
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+
+      setPins((prev) => prev.filter((pin) => pin.expiresAt > now));
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [setPins]);
 
   return (
-    <>
-      <Pressable
-        style={styles.openButton}
-        onPress={() => setModalVisible(true)}>
-        <Text style={styles.showText}>Add Pin</Text>
-      </Pressable>
-
-      <Text>Message: {Pinmessage}</Text>
-
+    <View style={styles.container}>
       <Modal
-        animationType='slide'
+        animationType="slide"
         transparent={true}
-        visible={ModalVisible}
-        onRequestClose={() => {
-          setModalVisible(false)
-        }}>
+        visible={visible}
+        onRequestClose={onClose}
+      >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <TextInput style={styles.writePin}
-              placeholder='text'
+            <TextInput
+              style={styles.writePin}
+              placeholder="text"
               value={Pinmessage}
               onChangeText={setPinmessage}
             />
 
-            <Pressable
+            <Button
               style={styles.cameraButton}
+              icon="camera"
+              mode="outlined"
               onPress={() => {
-                setModalVisible(false);
-                setShowCamera(true);
+                onCameraOpen?.(true);
+                onClose();
               }}
             >
-              <Text style={styles.closeText}>Ota kuva</Text>
-            </Pressable>
+              <Text style={styles.closeText}>Camera</Text>
+            </Button>
 
-            <Pressable
+            <View style={styles.picker}>
+              <Picker
+                selectedValue={category}
+                onValueChange={(itemValue: "short" | "medium" | "long") =>
+                  setCategory(itemValue as "short" | "medium" | "long")
+                }
+              >
+                <Picker.Item label="Tien este (1 min)" value="short" />
+                <Picker.Item label="Liikenne (5 min)" value="medium" />
+                <Picker.Item label="Maasto (1 hour)" value="long" />
+              </Picker>
+            </View>
+
+            <Button
               style={styles.closeButton}
-              onPress={savePin}>
-              <Text style={styles.closeText}>Tallenna</Text>
-            </Pressable>
+              onPress={savePin}
+              disabled={isSaving}
+            >
+              <Text style={styles.closeText}>
+                {isSaving ? "Saving..." : "Save"}
+              </Text>
+            </Button>
 
-            <Pressable
-              onPress={cancelPin}>
-              <Text style={styles.closeText}>Peruuta</Text>
-            </Pressable>
+            <Button onPress={cancelPin}>
+              <Text style={styles.closeText}>Cancel</Text>
+            </Button>
 
             {imageUri && (
               <Image
@@ -108,66 +167,55 @@ export default function PinUp({ pins, setPins, location }: Props) {
           </View>
         </View>
       </Modal>
-
-      {pins.map((pin, index) => (
-        <View key={index} style={{ marginTop: 20 }}>
-          <Text>{pin.message}</Text>
-
-          {pin.image && (
-            <Image
-              source={{ uri: pin.image }}
-              style={{ width: 200, height: 200 }}
-            />
-          )}
-        </View>
-      ))}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
   showText: {
     fontSize: 16,
-    fontWeight: '500'
+    fontWeight: "500",
   },
   centeredView: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
   },
   modalView: {
-    height: '50%',
-    width: '90%',
-    backgroundColor: 'rgb(255, 255, 255)',
+    width: "90%",
+    backgroundColor: "white",
     padding: 20,
-    borderRadius: 5
+    borderRadius: 16,
+    elevation: 5,
+    gap: 12,
   },
   modalText: {
     marginBottom: 15,
-    fontWeight: '500'
+    fontWeight: "500",
   },
   closeButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    fontWeight: '500'
+    fontWeight: "500",
   },
   closeText: {
-    fontWeight: '500'
+    fontWeight: "500",
   },
-  openButton: {
-
+  openButton: {},
+  writePin: {},
+  cameraButton: {},
+  picker: {
+    width: "100%",
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
   },
-  writePin: {
-    
-  },
-  cameraButton: {
-
-  }
 });
