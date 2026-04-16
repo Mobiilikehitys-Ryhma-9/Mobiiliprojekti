@@ -19,6 +19,7 @@ export async function saveToFirebase(pin: MapPin) {
         //image: imageUrl,
         latitude: pin.latitude,
         longitude: pin.longitude,
+        isBlockingRoute: pin.isBlockingRoute,
         category: pin.category,
         expiresAt: pin.expiresAt,
         userEmail: user.email,

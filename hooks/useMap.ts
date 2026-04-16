@@ -39,6 +39,7 @@ export function useMap() {
                         //image: data.image,
                         latitude: data.latitude,
                         longitude: data.longitude,
+                        isBlockingRoute: data.isBlockingRoute,
                         category: data.category,
                         expiresAt: data.expiresAt
                     } as MapPin
@@ -62,13 +63,15 @@ export function useMap() {
             let data: RouteResponse
             setRoutePoints({ start, end })
 
+            const routeBlockingPins = obstaclePins.filter(p => p.isBlockingRoute)
+
             if (profile === 'foot-walking') {
                 data = await fetchFootwalkRoute(start, end)
                 setRoute(data)
             } else if (profile === 'wheelchair') {
                 try {
-                    data = obstaclePins?.length 
-                        ? await fetchWheelchairRoute(start, end, obstaclePins)
+                    data = obstaclePins.length > 0
+                        ? await fetchWheelchairRoute(start, end, routeBlockingPins)
                         : await fetchWheelchairRoute(start, end)
                     setRoute(data)
                 } catch (err) {

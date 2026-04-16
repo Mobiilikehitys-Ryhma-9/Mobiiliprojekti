@@ -66,7 +66,7 @@ export default function MapControls({
   return (
   <>
     <Pressable
-      style={styles.toggleButton}
+      style={ showInputs ? styles.toggleButton : styles.toggleButtonClosed }
       onPress={() => setShowInputs(prev => !prev)}
     >
       <MaterialIcons
@@ -172,6 +172,16 @@ const styles = StyleSheet.create({
     marginVertical: 4
   },
   toggleButton: {
+    position: "absolute",
+    top: 250,
+    right: 20,
+    backgroundColor: "#333",
+    padding: 10,
+    borderRadius: 50,
+    zIndex: 10,
+    elevation: 6,
+},
+toggleButtonClosed: {
     position: "absolute",
     top: 45,
     right: 20,
