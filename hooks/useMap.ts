@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { fetchFootwalkRoute, fetchWheelchairRoute } from '../services/routeService';
 import { RoutePoint, RouteResponse } from '../types/route';
 import { MapPin } from "../types/Pin";
+import { collection, onSnapshot, query } from 'firebase/firestore';
+import { db } from '../services/firebase'
 
 const API_KEY = process.env.EXPO_PUBLIC_ORS_API_KEY
 
@@ -20,9 +22,37 @@ export function useMap() {
     const [profile, setProfile] = useState<Profile>('foot-walking')
     const [obstaclePins, setObstaclePins] = useState<MapPin[]>([])
     const [loading, setLoading] = useState<boolean>(false)
+    const [routeWarning, setRouteWarning] = useState<string | null>(null)
+
+    useEffect(() => {
+        const q = query(collection(db, "pins"))
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const now = Date.now()
+
+            const pinsFromDoc: MapPin[] = snapshot.docs
+                .map(doc => {
+                    const data = doc.data()
+
+                    return {
+                        message: data.message,
+                        image: data.image,
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                        category: data.category,
+                        expiresAt: data.expiresAt
+                    } as MapPin
+                })
+                .filter(p => p.expiresAt > now)
+            setObstaclePins(pinsFromDoc)
+        })
+
+        return () => unsubscribe()
+    }, [])
 
     const handleRouteSearch = async () => {
         setLoading(true)
+        setRouteWarning(null)
         const start = await geoCodeAddress(startLocation)
         const end = await geoCodeAddress(destination)
         
@@ -36,16 +66,21 @@ export function useMap() {
                 data = await fetchFootwalkRoute(start, end)
                 setRoute(data)
             } else if (profile === 'wheelchair') {
-                if (!obstaclePins || obstaclePins.length < 1) {0
-                    data = await fetchWheelchairRoute(start, end)
+                try {
+                    data = obstaclePins?.length 
+                        ? await fetchWheelchairRoute(start, end, obstaclePins)
+                        : await fetchWheelchairRoute(start, end)
                     setRoute(data)
-                } else {
-                    data = await fetchWheelchairRoute(start, end, obstaclePins)
+                } catch (err) {
+                    console.log('Wheelchair route fetch failed, falling back to walking route')
+                    data = await fetchFootwalkRoute(start, end)
                     setRoute(data)
+                    setRouteWarning('Esteetöntä reittiä pyörätuolille ei löytynyt. Näytetään kävelyreitti.')
                 }
             }
         } catch (err) {
-            console.error('Route search exception:',err)
+            console.error('Route search exception:', err)
+            setRouteWarning('Reitin haku epäonnistui')
         } finally {
             setLoading(false)
         }
@@ -80,6 +115,7 @@ export function useMap() {
         obstaclePins,
         setObstaclePins,
         handleRouteSearch,
-        loading
+        loading,
+        routeWarning
     } as const
 }
