@@ -5,6 +5,7 @@ import * as Location from "expo-location";
 import PinUpCamera from "./pinUpCamera";
 import { MapPin } from "../types/Pin";
 import { Picker } from "@react-native-picker/picker";
+import { saveToFirebase } from "../services/pinService";
 
 type Props = {
   pins: MapPin[];
@@ -67,6 +68,15 @@ export default function PinUp({
         category: category,
         expiresAt: Date.now() + duration,
       };
+
+      await saveToFirebase({
+        message: Pinmessage,
+        //image: imageUri,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        category,
+        expiresAt: Date.now() + duration
+      })
 
       setPins((prev) => [...prev, newPin]);
       setPinmessage("");

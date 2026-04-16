@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import {
   Button,
   ActivityIndicator,
@@ -44,7 +44,10 @@ export default function MapScreen({ navigation, user }: Props) {
   const mapRef = useRef<MapView>(null);
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0)
   const [cameraOpen, setCameraOpen] = useState(false);
+
+  const colors = ['#0072B2', '#E69F00', '#009E73']
   const [showInputs, setShowInputs] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
@@ -68,6 +71,8 @@ export default function MapScreen({ navigation, user }: Props) {
     await signOut(auth);
     navigation.navigate("Login");
   };
+
+  const selectedRoute = route?.routes?.[selectedRouteIndex]
 
   return (
     <SafeAreaView
@@ -103,13 +108,11 @@ export default function MapScreen({ navigation, user }: Props) {
         ))}
 
         {route?.routes?.map((r, index) => {
-          const colors = ['#007AFF', '#34C759', '#FF9500'];
-
           return (
             <Polyline
               key={index}
               coordinates={r.coords}
-              strokeWidth={index === 0 ? 4 : 2}
+              strokeWidth={index === selectedRouteIndex ? 6 : 3}
               strokeColor={colors[index] || 'gray'}
             />
           );
@@ -203,20 +206,34 @@ export default function MapScreen({ navigation, user }: Props) {
                 {routeWarning}
               </Text>
             )}
-            {/* <Text>
-              Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
-            </Text> */}
-            <Text>
-              Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %
-            </Text>
-            <Text>
-              Matka: {route?.steepnessSummaryDistance ?? 0} m
-            </Text>
-            {route?.hasCobblestone && (
-              <Text>
-                Reitillä todennäköisesti mukulakiveä
-              </Text>
-            )}
+
+            <View style={styles.routeSelector}>
+              {route?.routes.map((_, index) => (
+                <TouchableOpacity key={index}
+                  onPress={() => setSelectedRouteIndex(index)}
+                  style={[styles.routeButton, index === selectedRouteIndex && styles.routeButtonActive]}
+                  >
+                    <View style={{width: 10, height: 10, borderRadius: 5, backgroundColor: colors[index], marginBottom: 4}} />
+                    <Text style={{color: index === selectedRouteIndex ? 'white' : 'black'}}>
+                      {`Vaihtoehto ${index + 1}`}
+                    </Text>
+                  </TouchableOpacity>
+              ))}
+              </View>
+
+              {selectedRoute && (
+                <View style={styles.routeDetails}>
+                  {/* <Text>
+                    Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
+                    </Text> */}
+                  <Text>
+                    Jyrkkyys: {selectedRoute.steepnessSummaryValue ?? 0} %
+                  </Text>
+                  <Text>
+                    Matka: {selectedRoute.steepnessSummaryDistance ?? 0} m
+                  </Text>
+                </View>
+              )}
           </View>
         </>
       )}
@@ -252,8 +269,25 @@ const styles = StyleSheet.create({
     right: 12,
     backgroundColor: "white",
     padding: 10,
-    maxHeight: 140,
+    maxHeight: 200
   },
+  routeSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 8
+  },
+  routeButton: {
+    alignItems: 'center',
+    padding: 6,
+    borderRadius: 8
+  },
+  routeButtonActive: {
+    backgroundColor: '#333'
+  },
+  routeDetails: {
+    marginTop: 5,
+  },
+
   fab: {
     position: "absolute",
     right: 16,
