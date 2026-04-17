@@ -16,10 +16,9 @@ const mockAlerts = [
   { id: 8, title: 'Lumi', description: 'Tiellä on lunta', time: '16:45' },
 ];
 
-export default function App() {
+export default function AlertScreen() {
   return (
-    <SafeAreaView style={styles.container}>
-      <Text>AlertScreen</Text>
+    <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container} >
       <StatusBar style="auto" />
       <FlatList
         data={mockAlerts}

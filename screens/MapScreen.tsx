@@ -14,6 +14,8 @@ import { MapPin } from "../types/Pin";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { RootTabParamList } from "../types/navigation";
 
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
@@ -21,11 +23,11 @@ import PinUpCamera from "../components/pinUpCamera";
 
 import MapControls from "../components/MapControls";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Map"> & {
+type MapScreenProps = BottomTabScreenProps<RootTabParamList, 'Map'> & {
   user: any;
 };
 
-export default function MapScreen({ navigation, user }: Props) {
+export default function MapScreen({  navigation, user }: MapScreenProps) {
   const {
     startLocation,
     setStartLocation,
@@ -63,11 +65,6 @@ export default function MapScreen({ navigation, user }: Props) {
       animated: true,
     });
   }, [route]);
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigation.navigate("Login");
-  };
 
   return (
     <SafeAreaView
@@ -118,15 +115,7 @@ export default function MapScreen({ navigation, user }: Props) {
 
       {!cameraOpen && showInputs && (
         <>
-          <View style={styles.loginButton}>
-            {user ? (
-              <Button onPress={handleLogout}>Kirjaudu ulos</Button>
-            ) : (
-              <Button onPress={() => navigation.navigate("Login")}>
-                Kirjaudu sisään
-              </Button>
-            )}
-          </View>
+
 
           <MapControls
             startLocation={startLocation}
@@ -290,3 +279,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
+
+/*          /*<View style={styles.loginButton}>
+            {user ? (
+              <Button onPress={handleLogout}>Kirjaudu ulos</Button>
+            ) : (
+              <Button onPress={() => navigation.navigate("Login")}>
+                Kirjaudu sisään
+              </Button>
+            )}
+          </View>*/
+
+            /*const handleLogout = async () => {
+    await signOut(auth);
+    //navigation.navigate("Login");
+  };*/

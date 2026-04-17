@@ -1,23 +1,29 @@
-import React, { useState } from "react"; 
-import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet, Alert } from "react-native"; 
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet, Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
-import { signInWithEmailAndPassword } from "firebase/auth"; 
-import { auth } from "../services/firebase"; 
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../services/firebase";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 export default function LoginScreen({ navigation }: Props) {
 
-  const [email, setEmail] = useState(""); 
-  const [password, setPassword] = useState(""); 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleLogin = async () => { 
+  const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       Alert.alert("Onnistui", "Kirjautuminen onnistui");
-      navigation.navigate("Map"); 
+      
+    //takaisin alkuun
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Map" }],
+      });
+
     } catch (error: any) {
       Alert.alert("Virhe", "Väärä sähköposti tai salasana");
     }
@@ -32,8 +38,8 @@ export default function LoginScreen({ navigation }: Props) {
       <TextInput
         style={styles.input}
         placeholder="Sähköposti"
-        value={email} 
-        onChangeText={setEmail} 
+        value={email}
+        onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
       />
@@ -41,8 +47,8 @@ export default function LoginScreen({ navigation }: Props) {
       <TextInput
         style={styles.input}
         placeholder="Salasana"
-        value={password} 
-        onChangeText={setPassword} 
+        value={password}
+        onChangeText={setPassword}
         secureTextEntry
       />
 
@@ -52,7 +58,7 @@ export default function LoginScreen({ navigation }: Props) {
 
       <Button
         title="Login"
-        onPress={handleLogin} 
+        onPress={handleLogin}
       />
 
       <View style={styles.signUpContainer}>
