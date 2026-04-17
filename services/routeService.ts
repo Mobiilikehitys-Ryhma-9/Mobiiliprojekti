@@ -25,12 +25,32 @@ function parseFeature(feature: any): RouteOption {
         case 4: steepnessSummaryValue = 10; break
         case 5: steepnessSummaryValue = 16; break
     }
+
+    const waytypeSummary = feature?.properties?.extras?.waytype.summary[0]
+
+    let waytypeValue = waytypeSummary?.value ?? 0
+    let waytypeString = "Tuntematon"
+
+    switch (waytypeValue) {
+        case 1: waytypeString = "Moottoritie"; break
+        case 2: waytypeString = "Tieväylä"; break
+        case 3: waytypeString = "Katu"; break
+        case 4: waytypeString = "Polku"; break
+        case 5: waytypeString = "Rata"; break
+        case 6: waytypeString = "Pyörätie"; break
+        case 7: waytypeString = "Jalkakäytävä"; break
+        case 8: waytypeString = "Askelmia"; break
+        case 9: waytypeString = "Lautta"; break
+        case 10: waytypeString = "Työmaa"; break
+        default: waytypeString = "Tuntematon"
+    }
     
     return {
         coords,
         steepnessSummaryValue,
         steepnessSummaryDistance: summary?.distance ?? 0,
-        steepnessSummaryAmount: summary?.amount ?? 0
+        steepnessSummaryAmount: summary?.amount ?? 0,
+        waytype: waytypeString
     }
 }
 
@@ -43,7 +63,7 @@ export async function fetchFootwalkRoute(startCoords: number[], endCoords: numbe
         },
         body: JSON.stringify({
             coordinates: [startCoords, endCoords],
-            extra_info: ["steepness"],
+            extra_info: ["steepness", "waytype"],
             alternative_routes: {
                 target_count: 3, //= reittivahtoehtojen määrä
                 weight_factor: 1.6, //= kerroin, kuinka paljon pidempi saa reitti korkeintaan olla
@@ -71,7 +91,7 @@ export async function fetchWheelchairRoute(startCoords: number[], endCoords: num
 
     const requestBody: any = {
         coordinates: [startCoords, endCoords],            
-            extra_info: ["steepness","surface"],
+            extra_info: ["steepness","surface","waytype"],
             alternative_routes: {
                 target_count: 3, //= reittivahtoehtojen määrä
                 weight_factor: 1.6, //= kerroin, kuinka paljon pidempi saa reitti korkeintaan olla

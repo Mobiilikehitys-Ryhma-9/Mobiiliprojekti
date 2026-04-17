@@ -1,15 +1,19 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput } from "react-native";
 import {
   Button,
   ActivityIndicator,
-  FAB
+  FAB,
+  RadioButton,
 } from "react-native-paper";
 import MapView, { Polyline, Marker } from "react-native-maps";
 import { useMap } from "../hooks/useMap";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PinUp from "../components/pinUp";
+import PinUpCamera from "../components/pinUpCamera";
+
+import MapControls from "../components/MapControls";
 import { MapPin } from "../types/Pin";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -17,9 +21,6 @@ import { RootStackParamList } from "../App";
 
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
-import PinUpCamera from "../components/pinUpCamera";
-
-import MapControls from "../components/MapControls";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Map"> & {
   user: any;
@@ -82,16 +83,26 @@ export default function MapScreen({ navigation, user }: Props) {
         ref={mapRef}
         style={styles.map}
         initialRegion={{
-          latitude: (routePoints?.start[1] ?? 65.01),
-          longitude: (routePoints?.start[0] ?? 25.47),
+          latitude: routePoints?.start[1] ?? 65.01,
+          longitude: routePoints?.start[0] ?? 25.47,
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
       >
         {routePoints && (
           <>
-            <Marker coordinate={{ latitude: routePoints.start[1], longitude: routePoints.start[0] }} />
-            <Marker coordinate={{ latitude: routePoints.end[1], longitude: routePoints.end[0] }} />
+            <Marker
+              coordinate={{
+                latitude: routePoints.start[1],
+                longitude: routePoints.start[0],
+              }}
+            />
+            <Marker
+              coordinate={{
+                latitude: routePoints.end[1],
+                longitude: routePoints.end[0],
+              }}
+            />
           </>
         )}
 
@@ -108,12 +119,14 @@ export default function MapScreen({ navigation, user }: Props) {
         ))}
 
         {route?.routes?.map((r, index) => {
+          const colors = ["#007AFF", "#34C759", "#FF9500"];
+
           return (
             <Polyline
               key={index}
               coordinates={r.coords}
-              strokeWidth={index === selectedRouteIndex ? 6 : 3}
-              strokeColor={colors[index] || 'gray'}
+              strokeWidth={index === 0 ? 4 : 2}
+              strokeColor={colors[index] || "gray"}
             />
           );
         })}
@@ -169,7 +182,7 @@ export default function MapScreen({ navigation, user }: Props) {
         <FAB
           icon="plus"
           label="Lisää ilmoitus"
-          style={styles.fab}
+          style={!route ? styles.fabBottom : styles.fabUpper}
           onPress={() => setShowPinDialog(true)}
         />
       )}
@@ -198,7 +211,7 @@ export default function MapScreen({ navigation, user }: Props) {
         </View>
       )}
 
-      {!cameraOpen && (
+       {!cameraOpen && (
         <>
           <View style={styles.info}>
             {routeWarning && (
@@ -227,10 +240,13 @@ export default function MapScreen({ navigation, user }: Props) {
                     Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
                     </Text> */}
                   <Text>
-                    Jyrkkyys: {selectedRoute.steepnessSummaryValue ?? 0} %
+                    Jyrkkysarvo: {selectedRoute?.steepnessSummaryValue ?? 0}
                   </Text>
                   <Text>
                     Matka: {selectedRoute.steepnessSummaryDistance ?? 0} m
+                  </Text>
+                  <Text>
+                    Enimmäkseen reitti on tyyppiä: {selectedRoute.waytype}
                   </Text>
                 </View>
               )}
@@ -288,12 +304,19 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 
-  fab: {
+  fabUpper: {
+    position: "absolute",
+    right: 16,
+    bottom: 130,
+    zIndex: 20,
+  },
+  fabBottom: {
     position: "absolute",
     right: 16,
     bottom: 16,
     zIndex: 20,
   },
+
   pinPopup: {
     width: 180,
     padding: 10,

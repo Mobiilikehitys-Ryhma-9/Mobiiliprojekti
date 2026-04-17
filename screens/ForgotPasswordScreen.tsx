@@ -3,13 +3,16 @@ import { View, Text, TextInput, Button, Alert, StyleSheet, ActivityIndicator } f
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
 
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../services/firebase"; 
+
 type Props = NativeStackScreenProps<RootStackParamList, "ForgotPassword">;
 
 export default function ForgotPasswordScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleReset = () => {
+  const handleReset = async () => { 
     if (!email.trim()) {
       Alert.alert("Virhe", "Syötä sähköposti");
       return;
@@ -17,14 +20,20 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    try { 
+      await sendPasswordResetEmail(auth, email);
+
       Alert.alert(
         "Sähköposti lähetetty",
-        "Jos sähköposti löytyy, saat ohjeet pian."
+        "Saat pian ohjeet salasanan palautukseen."
       );
+
       navigation.navigate("Login");
-    }, 1000);
+    } catch (error: any) {
+      Alert.alert("Virhe", "Sähköpostin lähetys epäonnistui");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,7 +55,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       ) : (
         <Button
           title="Lähetä palautuslinkki"
-          onPress={handleReset}
+          onPress={handleReset} 
           disabled={!email.trim()}
         />
       )}
