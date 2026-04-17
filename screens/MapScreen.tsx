@@ -1,16 +1,18 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput } from "react-native";
 import {
   Button,
   ActivityIndicator,
   FAB
 } from "react-native-paper";
+import MapControls from "../components/MapControls";
 import MapView, { Polyline, Marker } from "react-native-maps";
 import { useMap } from "../hooks/useMap";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PinUp from "../components/pinUp";
 import { MapPin } from "../types/Pin";
+import { Profile } from "../hooks/useMap";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
@@ -18,8 +20,6 @@ import { RootStackParamList } from "../App";
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
 import PinUpCamera from "../components/pinUpCamera";
-
-import MapControls from "../components/MapControls";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Map"> & {
   user: any;
@@ -120,7 +120,7 @@ export default function MapScreen({ navigation, user }: Props) {
       </MapView>
 
       {!cameraOpen && showInputs && (
-        <>
+          <>
           <View style={styles.loginButton}>
             {user ? (
               <Button onPress={handleLogout}>Kirjaudu ulos</Button>
