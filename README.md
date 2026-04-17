@@ -1,4 +1,4 @@
-# 🗺️Esteetön Kartta-Sovellus
+# 🗺️ Esteetön Kartta-Sovellus
 
 Sovellus on tarkoitettu edistämään esteetööntä liikkumista kaupunkiympäristössä. Karttanäkymässä esitetään reittivaihtoehtoja kävelevälle tai pyörätuolilla liikkuvalle käyttäjälle. Rekisteröidyt käyttäjät pystyvät ilmoittamaan mahdollisia esteettömyyteen liittyviä huomioita, jotka huomioidaan reittivaihtoehdoissa. Sovellus on toteutettu React Nativella ja reittivaihtoehtojen hakemiseen sovellus käyttää [OpenRouteService](https://openrouteservice.org/) rajapintaa. Käyttäjien tehdyt ilmoitukset tallentuvat Googlen Firebase Firestoreen ja niihin liitetyt kuvat tallentuvat [Cloudinaryyn](https://cloudinary.com/)
 
@@ -12,7 +12,7 @@ Sovellus on tarkoitettu edistämään esteetööntä liikkumista kaupunkiympäri
 ## Toiminnot
 
 ### :star: Hae reitti kartalta
-Käyttäjä voi kirjautumatta sovellukseen hakea eri reittivaihtoehtoja. Käyttäjä voi valita reitiksi joko kävelyä tai pyörätuolia suosivan reitin. Jos kartta havaitsee esteen tiellä, se etsii vaihtoehtoisen reitin. Pyörätuolilla kulkevan reittivalinassa kartta ottaa huomioon eri maanpinnan korkeuden muutokset. 
+Käyttäjä voi kirjautumatta sovellukseen hakea eri reittivaihtoehtoja. Käyttäjä voi valita reitiksi joko kävelyä tai pyörätuolia suosivan reitin. Jos kartta havaitsee esteen tiellä, se etsii vaihtoehtoisen reitin. Pyörätuolilla kulkevan reittivalinassa kartta ottaa huomioon esimerkiksi eri maanpinnan korkeuden muutokset ja teiden leveydet. 
 
 
 ### :star: Luo käyttäjä ja kirjaudu sisään
@@ -20,7 +20,7 @@ Sovelluksen käyttäjä voi luoda sovellukseen tilin ja kirjautua sillä sisää
 
 
 ### :star: Luo pin-ilmoitus mahdollisista esteistä 
-Kirjautunut käyttäjä voi luoda pin-ilmoituksen näkemästään mahdollisesta esteestä ulkona ollessaan. Käyttäjä voi kirjoittaa esteelle kuvauksen, ottaa kuvan sekä laittaa havaittu este kategoriaan, joka määrittelee sen kuinka kauan ilmoitus on näkyvillä kartassa.
+Kirjautunut käyttäjä voi luoda pin-ilmoituksen näkemästään mahdollisesta esteestä ulkona ollessaan. Käyttäjä voi kirjoittaa esteelle kuvauksen, ottaa kuvan sekä laittaa havaittu este kategoriaan, joka määrittelee sen kuinka kauan ilmoitus on näkyvillä kartassa. Kun käyttäjä luo uuden ilmoituksen, sovellus hakee käyttäjän koordinaatit automaattisesti ja sijoittaa pinin kartalla niiden mukaisesti.
 
 
 ### :star: Selaa luotuja pin-ilmoituksia
