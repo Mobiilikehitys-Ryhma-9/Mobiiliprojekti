@@ -21,10 +21,6 @@ import { RootStackParamList } from "../App";
 
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
-import PinUpCamera from "../components/pinUpCamera";
-
-import MapControls from "../components/MapControls";
-import PinUpCamera from "../components/pinUpCamera";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Map"> & {
   user: any;
@@ -157,44 +153,6 @@ export default function MapScreen({ navigation, user }: Props) {
             setProfile={setProfile}
             handleRouteSearch={handleRouteSearch}
             loading={loading} />
-          <TextInput
-            style={styles.input}
-            placeholder="Lähtö"
-            value={startLocation}
-            onChangeText={setStartLocation}
-            />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Määränpää"
-            value={destination}
-            onChangeText={setDestination}
-            />
-
-          <RadioButton.Group
-            onValueChange={(value: string) => setProfile(value as Profile)}
-            value={profile}
-            >
-            <View style={styles.option}>
-              <RadioButton value="foot-walking" />
-              <Text>Kävely</Text>
-            </View>
-            <View style={styles.option}>
-              <RadioButton value="wheelchair" />
-              <Text>Pyörätuoli</Text>
-            </View>
-          </RadioButton.Group>
-
-          <Button
-            mode="contained"
-            icon="magnify"
-            loading={loading}
-            disabled={loading}
-            style={{ marginVertical: 8, alignSelf: "center" }}
-            onPress={handleRouteSearch}
-            >
-            Hae Reitti
-          </Button>
         </>
       )}
 
@@ -253,7 +211,7 @@ export default function MapScreen({ navigation, user }: Props) {
         </View>
       )}
 
-      {!cameraOpen && (
+       {!cameraOpen && (
         <>
           <View style={styles.info}>
             {routeWarning && (
@@ -261,11 +219,37 @@ export default function MapScreen({ navigation, user }: Props) {
                 {routeWarning}
               </Text>
             )}
-            {/* <Text>
-              Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
-            </Text>
-            <Text>Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %</Text>
-            <Text>Matka: {route?.steepnessSummaryDistance ?? 0} m</Text>
+
+            <View style={styles.routeSelector}>
+              {route?.routes.map((_, index) => (
+                <TouchableOpacity key={index}
+                  onPress={() => setSelectedRouteIndex(index)}
+                  style={[styles.routeButton, index === selectedRouteIndex && styles.routeButtonActive]}
+                  >
+                    <View style={{width: 10, height: 10, borderRadius: 5, backgroundColor: colors[index], marginBottom: 4}} />
+                    <Text style={{color: index === selectedRouteIndex ? 'white' : 'black'}}>
+                      {`Vaihtoehto ${index + 1}`}
+                    </Text>
+                  </TouchableOpacity>
+              ))}
+              </View>
+
+              {selectedRoute && (
+                <View style={styles.routeDetails}>
+                  {/* <Text>
+                    Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
+                    </Text> */}
+                  <Text>
+                    Jyrkkysarvo: {selectedRoute?.steepnessSummaryValue ?? 0}
+                  </Text>
+                  <Text>
+                    Matka: {selectedRoute.steepnessSummaryDistance ?? 0} m
+                  </Text>
+                  <Text>
+                    Enimmäkseen reitti on tyyppiä: {selectedRoute.waytype}
+                  </Text>
+                </View>
+              )}
           </View>
         </>
       )}
@@ -281,31 +265,6 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
     minHeight: 600,
-  },
-  topPanel: {
-    position: "absolute",
-    top: 30,
-    left: 10,
-    right: 10,
-    backgroundColor: "white",
-    padding: 10,
-    borderRadius: 12,
-    elevation: 5,
-  },
-  input: {
-    height: 30,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    margin: 5,
-    borderRadius: 8,
-    marginVertical: 4,
-  },
-  option: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 4,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -326,7 +285,30 @@ const styles = StyleSheet.create({
     right: 12,
     backgroundColor: "white",
     padding: 10,
-    maxHeight: 80,
+    maxHeight: 200
+  },
+  routeSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 8
+  },
+  routeButton: {
+    alignItems: 'center',
+    padding: 6,
+    borderRadius: 8
+  },
+  routeButtonActive: {
+    backgroundColor: '#333'
+  },
+  routeDetails: {
+    marginTop: 5,
+  },
+
+  fabUpper: {
+    position: "absolute",
+    right: 16,
+    bottom: 130,
+    zIndex: 20,
   },
   fabBottom: {
     position: "absolute",
