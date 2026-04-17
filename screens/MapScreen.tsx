@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput } from "react-native";
 import {
   Button,
   ActivityIndicator,
@@ -11,6 +11,9 @@ import MapView, { Polyline, Marker } from "react-native-maps";
 import { useMap } from "../hooks/useMap";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PinUp from "../components/pinUp";
+import PinUpCamera from "../components/pinUpCamera";
+
+import MapControls from "../components/MapControls";
 import { MapPin } from "../types/Pin";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -46,7 +49,10 @@ export default function MapScreen({ navigation, user }: Props) {
   const mapRef = useRef<MapView>(null);
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0)
   const [cameraOpen, setCameraOpen] = useState(false);
+
+  const colors = ['#0072B2', '#E69F00', '#009E73']
   const [showInputs, setShowInputs] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
@@ -70,6 +76,8 @@ export default function MapScreen({ navigation, user }: Props) {
     await signOut(auth);
     navigation.navigate("Login");
   };
+
+  const selectedRoute = route?.routes?.[selectedRouteIndex]
 
   return (
     <SafeAreaView
@@ -129,7 +137,7 @@ export default function MapScreen({ navigation, user }: Props) {
       </MapView>
 
       {!cameraOpen && showInputs && (
-        <View style={styles.topPanel}>
+        <>
           <View style={styles.loginButton}>
             {user ? (
               <Button onPress={handleLogout}>Kirjaudu ulos</Button>
@@ -149,25 +157,24 @@ export default function MapScreen({ navigation, user }: Props) {
             setProfile={setProfile}
             handleRouteSearch={handleRouteSearch}
             loading={loading} />
-        </>
           <TextInput
             style={styles.input}
             placeholder="Lähtö"
             value={startLocation}
             onChangeText={setStartLocation}
-          />
+            />
 
           <TextInput
             style={styles.input}
             placeholder="Määränpää"
             value={destination}
             onChangeText={setDestination}
-          />
+            />
 
           <RadioButton.Group
             onValueChange={(value: string) => setProfile(value as Profile)}
             value={profile}
-          >
+            >
             <View style={styles.option}>
               <RadioButton value="foot-walking" />
               <Text>Kävely</Text>
@@ -185,10 +192,10 @@ export default function MapScreen({ navigation, user }: Props) {
             disabled={loading}
             style={{ marginVertical: 8, alignSelf: "center" }}
             onPress={handleRouteSearch}
-          >
+            >
             Hae Reitti
           </Button>
-        </View>
+        </>
       )}
 
       {loading && (
@@ -217,7 +224,7 @@ export default function MapScreen({ navigation, user }: Props) {
         <FAB
           icon="plus"
           label="Lisää ilmoitus"
-          style={styles.fab}
+          style={!route ? styles.fabBottom : styles.fabUpper}
           onPress={() => setShowPinDialog(true)}
         />
       )}
@@ -321,12 +328,13 @@ const styles = StyleSheet.create({
     padding: 10,
     maxHeight: 80,
   },
-  fab: {
+  fabBottom: {
     position: "absolute",
     right: 16,
     bottom: 16,
     zIndex: 20,
   },
+
   pinPopup: {
     width: 180,
     padding: 10,
