@@ -6,7 +6,7 @@ import MapScreen from '../screens/MapScreen';
 import AlertScreen from '../screens/AlertScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
-type MapWrapperProps = BottomTabScreenProps<RootTabParamList, 'Map'>;
+type MapWrapperProps = BottomTabScreenProps<RootTabParamList, 'Kartta'>;
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -22,9 +22,9 @@ export default function NavigationBar({ user }: { user: any }) {
 
     return (
 
-        <Tab.Navigator initialRouteName='Map'>
+        <Tab.Navigator initialRouteName='Kartta'>
 
-            <Tab.Screen name="Profile" component={ProfileWrapper}
+            <Tab.Screen name="Profiili" component={ProfileWrapper}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <MaterialIcons name="person" size={size} color={color} />
@@ -34,7 +34,7 @@ export default function NavigationBar({ user }: { user: any }) {
             />
 
             <Tab.Screen
-                name="Map"
+                name="Kartta"
                 component={MapWrapper}
                 options={{
                     tabBarIcon: ({ color, size }) => (
@@ -44,7 +44,7 @@ export default function NavigationBar({ user }: { user: any }) {
                 }}
             />
 
-            <Tab.Screen name="Alerts" component={AlertScreen}
+            <Tab.Screen name="Ilmoitukset" component={AlertScreen}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <MaterialIcons name="warning" size={size} color={color} />

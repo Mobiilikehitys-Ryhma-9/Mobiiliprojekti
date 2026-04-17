@@ -1,6 +1,6 @@
 export type RootTabParamList = {
-  Map: undefined;
-  Alerts: undefined;
-  Profile: undefined;
+  Kartta: undefined;
+  Ilmoitukset: undefined;
+  Profiili: undefined;
   Login: undefined;
 };

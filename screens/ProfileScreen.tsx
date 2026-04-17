@@ -12,7 +12,7 @@ import { View, Text, Image, TextInput, TouchableOpacity, Button, StyleSheet, Fla
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
 
-type Props = BottomTabScreenProps<RootTabParamList, 'Profile'>;
+type Props = BottomTabScreenProps<RootTabParamList, 'Profiili'>;
 
 
 export default function ProfileScreen({ navigation }: Props) {
@@ -157,8 +157,8 @@ export default function ProfileScreen({ navigation }: Props) {
         </View>
 
       ) : (
-        <View style={{ alignItems: "center", marginTop: 20 }}>
-          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <View style={{ alignItems: "center" }}>
+          <TouchableOpacity style={styles.signUpButton} onPress={() => navigation.navigate("Login")}>
             <Text style={styles.signUpText}>Kirjaudu sisään</Text>
           </TouchableOpacity>
         </View>
@@ -290,7 +290,13 @@ const styles = StyleSheet.create({
   },
   signUpText: {
     fontWeight: "bold",
-    color: "#6200ee"
+    color: "#6200ee",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+    signUpButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   }
 
 });

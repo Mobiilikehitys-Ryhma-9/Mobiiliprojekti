@@ -24,7 +24,7 @@ import { RootTabParamList } from "../types/navigation";
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
 
-type MapScreenProps = BottomTabScreenProps<RootTabParamList, 'Map'> & {
+type MapScreenProps = BottomTabScreenProps<RootTabParamList, 'Kartta'> & {
   user: any;
 };
 
