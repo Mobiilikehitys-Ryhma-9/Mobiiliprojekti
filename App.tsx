@@ -16,7 +16,7 @@ import ProfileScreen from "./screens/ProfileScreen";
 import NavigationBar from './components/NavigationBar';
 
 export type RootStackParamList = {
-  Map: undefined;
+  Main: undefined;
   Login: undefined;
   ForgotPassword: undefined;
   Register: undefined;
@@ -41,7 +41,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
 
-        <Stack.Screen name="Map">
+        <Stack.Screen name="Main">
           {(props) => <NavigationBar {...props} user={user} />}
         </Stack.Screen>
 

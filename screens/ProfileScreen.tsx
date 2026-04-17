@@ -4,6 +4,7 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from '../types/navigation';
 
 import { auth } from '../services/firebase';
+import { signOut } from "firebase/auth";
 
 import { useState, useEffect } from "react"
 import { MaterialIcons, Ionicons } from '@expo/vector-icons'
@@ -15,17 +16,26 @@ type Props = BottomTabScreenProps<RootTabParamList, 'Profile'>;
 
 
 export default function ProfileScreen({ navigation }: Props) {
-  
+
   const [user, setUser] = useState<any>(null);
 
-useEffect(() => {
-  const unsubscribe = auth.onAuthStateChanged((u) => {
-    setUser(u);
-  });
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((u) => {
+      setUser(u);
+    });
 
-  return unsubscribe;
-}, []);
+    return unsubscribe;
+  }, []);
 
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.log("Virhe uloskirjautumisessa:", e);
+    }
+  };
+  // dummy alertit että tietää miltä lista näyttää käytännössä
+  // Oikeasti ne sitten haettaisiin firebasesta, joka vaatii oman funktion totta kai..
   const [userAlert, setUserAlerts] = useState([
     {
       id: "1",
@@ -54,117 +64,123 @@ useEffect(() => {
 
   // Tykkäysten määrä myös oletetusti haetaan sitten firebasesta
   const likes = 10
+  const username = "Käyttäjätunnus"
 
   // Firebase kutsut tänne siten miten itse haluaa onPress funktioiden sisälle
   const menuItems = [
     { label: "Change Username", onPress: () => { } },
     { label: "Change Password", onPress: () => { } },
     { label: "Change Profile Picture", onPress: () => { } },
-    { label: "Sign Out", onPress: () => { } },
+    { label: "Sign Out", onPress: () => { handleSignOut(); } },
   ];
 
   return (
 
     <View style={styles.container}>
-        {user ? (
-          // dummy alertit että tietää miltä lista näyttää käytännössä
-          // Oikeasti ne sitten haettaisiin firebasesta, joka vaatii oman funktion totta kai..
+      {user ? (
 
-          <View style={{ flex: 1, backgroundColor: "white" }}>
+        <View style={{ flex: 1, backgroundColor: "white" }}>
 
-            <View style={{ alignItems: 'flex-start', width: '100%' }}>
-              <TouchableOpacity
-                style={styles.sideWidget}
-                onPress={() => setUserSettings(!userSettings)}
-              >lk
-                <Ionicons name="menu" size={32} color="gray" />
-              </TouchableOpacity>
-            </View>
+          <View style={{ alignItems: 'flex-start', width: '100%' }}>
+            <TouchableOpacity
+              style={styles.sideWidget}
+              onPress={() => setUserSettings(!userSettings)}
+            >
+              <Ionicons name="menu" size={32} color="gray" />
+            </TouchableOpacity>
+          </View>
 
-            <View style={styles.container}>
+          <View style={styles.rowContainer}>
 
-              {/* Profiilikuva, pitää muuttaa että source on haettu kuva firebasesta tai vastaavasta */}
-              <Image
-                source={require("../assets/favicon.png")}
-                style={styles.profilePicture}
-              />
-
-              <View>
-                <Text style={styles.username}>Username</Text> {/* Hae käyttäjänimi oikeasti firebasesta */}
-                <View style={styles.likeContainer}>
-                  <MaterialIcons name="thumb-up" size={24} color="green" />
-                  <Text>{likes}</Text>
-                </View>
-              </View>
-            </View>
-
-            <Text style={styles.divider}></Text>
-
-            {/* Tässä itse lista käyttäjän ilmoituksista */}
-            <FlatList
-              data={userAlert}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <View style={styles.alertBox}>
-                  <Text style={styles.areaText}>{item.area}</Text>
-                  <Text style={styles.alertText}>{item.text}</Text>
-
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => deleteItem(item.id)}
-                  >
-                    <MaterialIcons name="delete" size={24} color="red" />
-                  </TouchableOpacity>
-
-                </View>
-              )}
+            {/* Profiilikuva, pitää muuttaa että source on haettu kuva firebasesta tai vastaavasta */}
+            <Image
+              source={require("../assets/favicon.png")}
+              style={styles.profilePicture}
             />
 
-            {userSettings && (
-              <>
-                <View style={styles.centerMenu}>
-                  <Text style={styles.menuTitle}>Settings</Text>
+            <View>
+              {/* Hae käyttäjänimi oikeasti firebasesta */}
+              <Text style={styles.username}>{username}</Text>
+              <View style={styles.likeContainer}>
+                <MaterialIcons name="thumb-up" size={24} color="green" />
+                <Text>{likes}</Text>
+              </View>
+            </View>
+          </View>
 
-                  {menuItems.map((item) => (
-                    <TouchableOpacity
-                      key={item.label}
-                      style={styles.menuButton}
-                      onPress={item.onPress}>
-                      <Text style={styles.menuButtonText}>{item.label}</Text>
-                    </TouchableOpacity>
-                  ))}
+          <View style={styles.divider}></View>
 
-                  <TouchableOpacity onPress={() => setUserSettings(false)}>
-                    <Text style={{ marginTop: 20, color: 'red', alignSelf: 'center' }}>Close</Text>
-                  </TouchableOpacity>
+          {/* Tässä itse lista käyttäjän ilmoituksista */}
+          <FlatList
+            data={userAlert}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.alertBox}>
+                <Text style={styles.areaText}>{item.area}</Text>
+                <Text style={styles.alertText}>{item.text}</Text>
 
-                </View>
-                <View style={styles.globalDarken}>
-                </View>
-              </>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => deleteItem(item.id)}
+                >
+                  <MaterialIcons name="delete" size={24} color="red" />
+                </TouchableOpacity>
+
+              </View>
             )}
+          />
 
-          </View >
+          {userSettings && (
+            <>
+              <View style={styles.centerMenu}>
+                <Text style={styles.menuTitle}>Settings</Text>
+
+                {menuItems.map((item) => (
+                  <TouchableOpacity
+                    key={item.label}
+                    style={styles.menuButton}
+                    onPress={item.onPress}>
+                    <Text style={styles.menuButtonText}>{item.label}</Text>
+                  </TouchableOpacity>
+                ))}
+
+                <TouchableOpacity onPress={() => setUserSettings(false)}>
+                  <Text style={{ marginTop: 20, color: 'red', alignSelf: 'center' }}>Close</Text>
+                </TouchableOpacity>
+
+              </View>
+              <View style={styles.globalDarken}>
+              </View>
+            </>
+          )}
+
+        </View>
 
       ) : (
         <View style={{ alignItems: "center", marginTop: 20 }}>
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.signUpText}>Kirjaudu sisään</Text>
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.signUpText}>Kirjaudu sisään</Text>
+          </TouchableOpacity>
         </View>
       )}
-        
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: "#fff"
+  },
+
+  rowContainer: {
     flexDirection: "row",
     padding: 16,
     marginTop: 60,
     backgroundColor: "#fff"
   },
+
   forgotPassword: {
     alignSelf: "flex-end",
     marginBottom: 20,

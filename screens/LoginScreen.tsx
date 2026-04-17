@@ -21,7 +21,7 @@ export default function LoginScreen({ navigation }: Props) {
     //takaisin alkuun
       navigation.reset({
         index: 0,
-        routes: [{ name: "Map" }],
+        routes: [{ name: "Main" }],
       });
 
     } catch (error: any) {
