@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { fetchFootwalkRoute, fetchWheelchairRoute } from '../services/routeService';
 import { RoutePoint, RouteResponse } from '../types/route';
 import { MapPin } from "../types/Pin";
+import { collection, onSnapshot, query } from 'firebase/firestore';
+import { db } from '../services/firebase'
 
 const API_KEY = process.env.EXPO_PUBLIC_ORS_API_KEY
 
@@ -21,6 +23,32 @@ export function useMap() {
     const [obstaclePins, setObstaclePins] = useState<MapPin[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [routeWarning, setRouteWarning] = useState<string | null>(null)
+
+    useEffect(() => {
+        const q = query(collection(db, "pins"))
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const now = Date.now()
+
+            const pinsFromDoc: MapPin[] = snapshot.docs
+                .map(doc => {
+                    const data = doc.data()
+
+                    return {
+                        message: data.message,
+                        image: data.image,
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                        category: data.category,
+                        expiresAt: data.expiresAt
+                    } as MapPin
+                })
+                .filter(p => p.expiresAt > now)
+            setObstaclePins(pinsFromDoc)
+        })
+
+        return () => unsubscribe()
+    }, [])
 
     const handleRouteSearch = async () => {
         setLoading(true)

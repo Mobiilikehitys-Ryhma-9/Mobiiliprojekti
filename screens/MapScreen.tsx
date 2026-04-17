@@ -4,7 +4,8 @@ import { StyleSheet, Text, View, Image } from "react-native";
 import {
   Button,
   ActivityIndicator,
-  FAB
+  FAB,
+  RadioButton,
 } from "react-native-paper";
 import MapView, { Polyline, Marker } from "react-native-maps";
 import { useMap } from "../hooks/useMap";
@@ -20,6 +21,7 @@ import { signOut } from "firebase/auth";
 import PinUpCamera from "../components/pinUpCamera";
 
 import MapControls from "../components/MapControls";
+import PinUpCamera from "../components/pinUpCamera";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Map"> & {
   user: any;
@@ -77,16 +79,26 @@ export default function MapScreen({ navigation, user }: Props) {
         ref={mapRef}
         style={styles.map}
         initialRegion={{
-          latitude: (routePoints?.start[1] ?? 65.01),
-          longitude: (routePoints?.start[0] ?? 25.47),
+          latitude: routePoints?.start[1] ?? 65.01,
+          longitude: routePoints?.start[0] ?? 25.47,
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
       >
         {routePoints && (
           <>
-            <Marker coordinate={{ latitude: routePoints.start[1], longitude: routePoints.start[0] }} />
-            <Marker coordinate={{ latitude: routePoints.end[1], longitude: routePoints.end[0] }} />
+            <Marker
+              coordinate={{
+                latitude: routePoints.start[1],
+                longitude: routePoints.start[0],
+              }}
+            />
+            <Marker
+              coordinate={{
+                latitude: routePoints.end[1],
+                longitude: routePoints.end[0],
+              }}
+            />
           </>
         )}
 
@@ -103,21 +115,21 @@ export default function MapScreen({ navigation, user }: Props) {
         ))}
 
         {route?.routes?.map((r, index) => {
-          const colors = ['#007AFF', '#34C759', '#FF9500'];
+          const colors = ["#007AFF", "#34C759", "#FF9500"];
 
           return (
             <Polyline
               key={index}
               coordinates={r.coords}
               strokeWidth={index === 0 ? 4 : 2}
-              strokeColor={colors[index] || 'gray'}
+              strokeColor={colors[index] || "gray"}
             />
           );
         })}
       </MapView>
 
       {!cameraOpen && showInputs && (
-        <>
+        <View style={styles.topPanel}>
           <View style={styles.loginButton}>
             {user ? (
               <Button onPress={handleLogout}>Kirjaudu ulos</Button>
@@ -138,6 +150,45 @@ export default function MapScreen({ navigation, user }: Props) {
             handleRouteSearch={handleRouteSearch}
             loading={loading} />
         </>
+          <TextInput
+            style={styles.input}
+            placeholder="Lähtö"
+            value={startLocation}
+            onChangeText={setStartLocation}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Määränpää"
+            value={destination}
+            onChangeText={setDestination}
+          />
+
+          <RadioButton.Group
+            onValueChange={(value: string) => setProfile(value as Profile)}
+            value={profile}
+          >
+            <View style={styles.option}>
+              <RadioButton value="foot-walking" />
+              <Text>Kävely</Text>
+            </View>
+            <View style={styles.option}>
+              <RadioButton value="wheelchair" />
+              <Text>Pyörätuoli</Text>
+            </View>
+          </RadioButton.Group>
+
+          <Button
+            mode="contained"
+            icon="magnify"
+            loading={loading}
+            disabled={loading}
+            style={{ marginVertical: 8, alignSelf: "center" }}
+            onPress={handleRouteSearch}
+          >
+            Hae Reitti
+          </Button>
+        </View>
       )}
 
       {loading && (
@@ -205,18 +256,9 @@ export default function MapScreen({ navigation, user }: Props) {
             )}
             {/* <Text>
               Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
-            </Text> */}
-            <Text>
-              Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %
             </Text>
-            <Text>
-              Matka: {route?.steepnessSummaryDistance ?? 0} m
-            </Text>
-            {route?.hasCobblestone && (
-              <Text>
-                Reitillä todennäköisesti mukulakiveä
-              </Text>
-            )}
+            <Text>Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %</Text>
+            <Text>Matka: {route?.steepnessSummaryDistance ?? 0} m</Text>
           </View>
         </>
       )}
@@ -232,6 +274,31 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
     minHeight: 600,
+  },
+  topPanel: {
+    position: "absolute",
+    top: 30,
+    left: 10,
+    right: 10,
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 12,
+    elevation: 5,
+  },
+  input: {
+    height: 30,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    margin: 5,
+    borderRadius: 8,
+    marginVertical: 4,
+  },
+  option: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 4,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -252,7 +319,7 @@ const styles = StyleSheet.create({
     right: 12,
     backgroundColor: "white",
     padding: 10,
-    maxHeight: 140,
+    maxHeight: 80,
   },
   fab: {
     position: "absolute",
