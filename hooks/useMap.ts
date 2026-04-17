@@ -36,7 +36,7 @@ export function useMap() {
 
                     return {
                         message: data.message,
-                        //image: data.image,
+                        image: data.image,
                         latitude: data.latitude,
                         longitude: data.longitude,
                         isBlockingRoute: data.isBlockingRoute,

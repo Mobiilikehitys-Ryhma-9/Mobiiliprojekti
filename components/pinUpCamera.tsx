@@ -49,9 +49,9 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
                 uri: photoUri,
               };
 
-              const url = await uploadImage(image); //LISÄTTY
+              const url = await uploadImage(image.uri); //LISÄTTY
               console.log("CLOUDINARY URL:", url);
-              onPictureTaken(url); //MUUTETTU (lähetetään URL eikä uri)
+              onPictureTaken(url ?? ''); //MUUTETTU (lähetetään URL eikä uri)
             }}
           />
         </View>

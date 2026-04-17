@@ -4,19 +4,12 @@ import { ref } from "firebase/storage"
 import { MapPin } from "../types/Pin"
 
 export async function saveToFirebase(pin: MapPin) {
-    // Myöhemmin tallennetaan kuva erilliseen palveluun
-    /*
-    if (pin.image) {
-
-    }
-    */
-
     const user = auth.currentUser
     if (!user) return
- 
+
     await addDoc(collection(db, "pins"), {
         message: pin.message,
-        //image: imageUrl,
+        image: pin.image,
         latitude: pin.latitude,
         longitude: pin.longitude,
         isBlockingRoute: pin.isBlockingRoute,

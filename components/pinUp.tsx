@@ -6,6 +6,7 @@ import PinUpCamera from "./pinUpCamera";
 import { MapPin } from "../types/Pin";
 import { Picker } from "@react-native-picker/picker";
 import { saveToFirebase } from "../services/pinService";
+import { uploadImage } from "../services/imageService";
 
 type Props = {
   pins: MapPin[];
@@ -60,10 +61,16 @@ export default function PinUp({
 
       const location = await Location.getCurrentPositionAsync({});
       const duration = CATEGORY_DURATION[category];
+      
+      let imagePath: string | undefined = undefined;
+      if (imageUri) {
+        const uploadedUrl = await uploadImage(imageUri);
+        if (uploadedUrl) imagePath = uploadedUrl
+      }
 
       const newPin: MapPin = {
         message: Pinmessage,
-        image: imageUri ?? undefined,
+        image: imagePath,
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
         category: category,
