@@ -1,10 +1,12 @@
 import { StyleSheet, Text, View, Modal, Pressable, Image } from "react-native";
-import { TextInput, Button } from "react-native-paper";
+import { TextInput, Button, Checkbox } from "react-native-paper";
 import React, { useState } from "react";
 import * as Location from "expo-location";
 import PinUpCamera from "./pinUpCamera";
 import { MapPin } from "../types/Pin";
 import { Picker } from "@react-native-picker/picker";
+import { saveToFirebase } from "../services/pinService";
+import { uploadImage } from "../services/imageService";
 
 type Props = {
   pins: MapPin[];
@@ -32,6 +34,7 @@ export default function PinUp({
   const [category, setCategory] = useState<"short" | "medium" | "long">(
     "medium",
   );
+  const [isBlockingRoute, setIsBlockingRoute] = useState<boolean>(false);
 
   const CATEGORY_DURATION = {
     short: 1 * 60 * 1000, // 1 min
@@ -58,15 +61,24 @@ export default function PinUp({
 
       const location = await Location.getCurrentPositionAsync({});
       const duration = CATEGORY_DURATION[category];
+      
+      let imagePath: string | undefined = undefined;
+      if (imageUri) {
+        const uploadedUrl = await uploadImage(imageUri);
+        if (uploadedUrl) imagePath = uploadedUrl
+      }
 
       const newPin: MapPin = {
         message: Pinmessage,
-        image: imageUri ?? undefined,
+        image: imagePath,
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
         category: category,
         expiresAt: Date.now() + duration,
+        isBlockingRoute
       };
+
+      await saveToFirebase(newPin)
 
       setPins((prev) => [...prev, newPin]);
       setPinmessage("");
@@ -114,11 +126,17 @@ export default function PinUp({
           <View style={styles.modalView}>
             <TextInput
               style={styles.writePin}
-              placeholder="text"
+              placeholder="Kuvaus"
               value={Pinmessage}
               onChangeText={setPinmessage}
             />
 
+            <View style={{ flexDirection: "row", alignItems: "center"}}>
+              <Checkbox 
+                status={isBlockingRoute ? "checked" : "unchecked"}
+                onPress={() => setIsBlockingRoute(!isBlockingRoute)} />
+              <Text>Estää reitin kokonaan</Text>
+            </View>
             <Button
               style={styles.cameraButton}
               icon="camera"

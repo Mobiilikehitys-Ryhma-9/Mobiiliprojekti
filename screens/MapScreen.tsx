@@ -1,15 +1,19 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput } from "react-native";
 import {
   Button,
   ActivityIndicator,
-  FAB
+  FAB,
+  RadioButton,
 } from "react-native-paper";
 import MapView, { Polyline, Marker } from "react-native-maps";
 import { useMap } from "../hooks/useMap";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PinUp from "../components/pinUp";
+import PinUpCamera from "../components/pinUpCamera";
+
+import MapControls from "../components/MapControls";
 import { MapPin } from "../types/Pin";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -19,9 +23,6 @@ import { RootTabParamList } from "../types/navigation";
 
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
-import PinUpCamera from "../components/pinUpCamera";
-
-import MapControls from "../components/MapControls";
 
 type MapScreenProps = BottomTabScreenProps<RootTabParamList, 'Map'> & {
   user: any;
@@ -46,7 +47,10 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
   const mapRef = useRef<MapView>(null);
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0)
   const [cameraOpen, setCameraOpen] = useState(false);
+
+  const colors = ['#0072B2', '#E69F00', '#009E73']
   const [showInputs, setShowInputs] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
@@ -66,6 +70,13 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
     });
   }, [route]);
 
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigation.navigate("Login");
+  };
+
+  const selectedRoute = route?.routes?.[selectedRouteIndex]
+
   return (
     <SafeAreaView
       style={[styles.container, cameraOpen && { paddingBottom: 0 }]}
@@ -74,16 +85,26 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
         ref={mapRef}
         style={styles.map}
         initialRegion={{
-          latitude: (routePoints?.start[1] ?? 65.01),
-          longitude: (routePoints?.start[0] ?? 25.47),
+          latitude: routePoints?.start[1] ?? 65.01,
+          longitude: routePoints?.start[0] ?? 25.47,
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
       >
         {routePoints && (
           <>
-            <Marker coordinate={{ latitude: routePoints.start[1], longitude: routePoints.start[0] }} />
-            <Marker coordinate={{ latitude: routePoints.end[1], longitude: routePoints.end[0] }} />
+            <Marker
+              coordinate={{
+                latitude: routePoints.start[1],
+                longitude: routePoints.start[0],
+              }}
+            />
+            <Marker
+              coordinate={{
+                latitude: routePoints.end[1],
+                longitude: routePoints.end[0],
+              }}
+            />
           </>
         )}
 
@@ -100,14 +121,14 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
         ))}
 
         {route?.routes?.map((r, index) => {
-          const colors = ['#007AFF', '#34C759', '#FF9500'];
+          const colors = ["#007AFF", "#34C759", "#FF9500"];
 
           return (
             <Polyline
               key={index}
               coordinates={r.coords}
               strokeWidth={index === 0 ? 4 : 2}
-              strokeColor={colors[index] || 'gray'}
+              strokeColor={colors[index] || "gray"}
             />
           );
         })}
@@ -155,7 +176,7 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
         <FAB
           icon="plus"
           label="Lisää ilmoitus"
-          style={styles.fab}
+          style={!route ? styles.fabBottom : styles.fabUpper}
           onPress={() => setShowPinDialog(true)}
         />
       )}
@@ -184,7 +205,7 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
         </View>
       )}
 
-      {!cameraOpen && (
+       {!cameraOpen && (
         <>
           <View style={styles.info}>
             {routeWarning && (
@@ -192,20 +213,37 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
                 {routeWarning}
               </Text>
             )}
-            {/* <Text>
-              Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
-            </Text> */}
-            <Text>
-              Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %
-            </Text>
-            <Text>
-              Matka: {route?.steepnessSummaryDistance ?? 0} m
-            </Text>
-            {route?.hasCobblestone && (
-              <Text>
-                Reitillä todennäköisesti mukulakiveä
-              </Text>
-            )}
+
+            <View style={styles.routeSelector}>
+              {route?.routes.map((_, index) => (
+                <TouchableOpacity key={index}
+                  onPress={() => setSelectedRouteIndex(index)}
+                  style={[styles.routeButton, index === selectedRouteIndex && styles.routeButtonActive]}
+                  >
+                    <View style={{width: 10, height: 10, borderRadius: 5, backgroundColor: colors[index], marginBottom: 4}} />
+                    <Text style={{color: index === selectedRouteIndex ? 'white' : 'black'}}>
+                      {`Vaihtoehto ${index + 1}`}
+                    </Text>
+                  </TouchableOpacity>
+              ))}
+              </View>
+
+              {selectedRoute && (
+                <View style={styles.routeDetails}>
+                  {/* <Text>
+                    Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
+                    </Text> */}
+                  <Text>
+                    Jyrkkysarvo: {selectedRoute?.steepnessSummaryValue ?? 0}
+                  </Text>
+                  <Text>
+                    Matka: {selectedRoute.steepnessSummaryDistance ?? 0} m
+                  </Text>
+                  <Text>
+                    Enimmäkseen reitti on tyyppiä: {selectedRoute.waytype}
+                  </Text>
+                </View>
+              )}
           </View>
         </>
       )}
@@ -241,14 +279,38 @@ const styles = StyleSheet.create({
     right: 12,
     backgroundColor: "white",
     padding: 10,
-    maxHeight: 140,
+    maxHeight: 200
   },
-  fab: {
+  routeSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 8
+  },
+  routeButton: {
+    alignItems: 'center',
+    padding: 6,
+    borderRadius: 8
+  },
+  routeButtonActive: {
+    backgroundColor: '#333'
+  },
+  routeDetails: {
+    marginTop: 5,
+  },
+
+  fabUpper: {
+    position: "absolute",
+    right: 16,
+    bottom: 130,
+    zIndex: 20,
+  },
+  fabBottom: {
     position: "absolute",
     right: 16,
     bottom: 16,
     zIndex: 20,
   },
+
   pinPopup: {
     width: 180,
     padding: 10,
@@ -279,18 +341,3 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
-
-/*          /*<View style={styles.loginButton}>
-            {user ? (
-              <Button onPress={handleLogout}>Kirjaudu ulos</Button>
-            ) : (
-              <Button onPress={() => navigation.navigate("Login")}>
-                Kirjaudu sisään
-              </Button>
-            )}
-          </View>*/
-
-            /*const handleLogout = async () => {
-    await signOut(auth);
-    //navigation.navigate("Login");
-  };*/

@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import { useRef } from "react";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import { uploadImage } from "../services/imageService"; //LISÄTTY
 
 type Props = {
   onPictureTaken: (uri: string) => void;
@@ -39,7 +40,20 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
 
         <View style={styles.controls}>
           <Button title="Retake" onPress={() => setPhotoUri(null)} />
-          <Button title="Use Photo" onPress={() => onPictureTaken(photoUri)} />
+          <Button
+            title="Use Photo"
+            onPress={async () => {
+              if (!photoUri) return;
+
+              const image = {
+                uri: photoUri,
+              };
+
+              const url = await uploadImage(image.uri); //LISÄTTY
+              console.log("CLOUDINARY URL:", url);
+              onPictureTaken(url ?? ''); //MUUTETTU (lähetetään URL eikä uri)
+            }}
+          />
         </View>
       </View>
     );

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-picker/picker": "2.11.1",
     "@react-navigation/bottom-tabs": "^7.15.9",
     "@react-navigation/native": "^7.1.33",
@@ -17,6 +18,7 @@
     "dotenv": "^17.3.1",
     "expo": "~54.0.0",
     "expo-camera": "~17.0.10",
+    "expo-image-picker": "~17.0.10",
     "expo-location": "~19.0.8",
     "expo-status-bar": "~3.0.9",
     "firebase": "^12.11.0",

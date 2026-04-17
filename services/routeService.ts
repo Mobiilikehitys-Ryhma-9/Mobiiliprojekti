@@ -2,40 +2,15 @@ import { RouteOption, RouteResponse } from '../types/route'
 
 const BASE_URL = 'https://api.openrouteservice.org'
 
-export async function fetchFootwalkRoute(startCoords: number[], endCoords: number[]): Promise<RouteResponse> {
-    const response = await fetch(`${BASE_URL}/v2/directions/foot-walking/geojson`, {
-        method: 'POST',
-        headers: {
-            Authorization: process.env.EXPO_PUBLIC_ORS_API_KEY,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            coordinates: [startCoords, endCoords],
-            extra_info: ["steepness"],
-            alternative_routes: {
-                target_count: 3, //= reittivahtoehtojen määrä
-                weight_factor: 1.6, //= kerroin, kuinka paljon pidempi saa reitti korkeintaan olla
-                share_factor: 0.6 //= kerroin, kuinka paljon reitti korkeintaan saa mennä samaa tietä
-            }
-        })
-    })
-
-    const data = await response.json()
-    if (!data.features || data.features.length === 0) {
-        throw new Error('No route found')
-    }
-    
-    const routes: RouteOption[] = data.features.map((feature: any) => ({
-        coords: feature.geometry.coordinates.map(
-            ([lon, lat]: [number, number]) => ({
+function parseFeature(feature: any): RouteOption {
+    const coords = feature.geometry.coordinates.map(
+        ([lon, lat]: [number, number]) => ({
             latitude: lat,
             longitude: lon
         }))
-    }))
-
-    const feature = data.features[0]
-    const steepness = feature?.properties.extras?.steepness
+    const steepness = feature?.properties?.extras?.steepness
     const summary = steepness?.summary?.[0]
+    
     let steepnessSummaryValue = summary?.value ?? 0
     switch (steepnessSummaryValue) {
         case -5: steepnessSummaryValue = -16; break
@@ -50,13 +25,62 @@ export async function fetchFootwalkRoute(startCoords: number[], endCoords: numbe
         case 4: steepnessSummaryValue = 10; break
         case 5: steepnessSummaryValue = 16; break
     }
+
+    const waytypeSummary = feature?.properties?.extras?.waytype.summary[0]
+
+    let waytypeValue = waytypeSummary?.value ?? 0
+    let waytypeString = "Tuntematon"
+
+    switch (waytypeValue) {
+        case 1: waytypeString = "Moottoritie"; break
+        case 2: waytypeString = "Tieväylä"; break
+        case 3: waytypeString = "Katu"; break
+        case 4: waytypeString = "Polku"; break
+        case 5: waytypeString = "Rata"; break
+        case 6: waytypeString = "Pyörätie"; break
+        case 7: waytypeString = "Jalkakäytävä"; break
+        case 8: waytypeString = "Askelmia"; break
+        case 9: waytypeString = "Lautta"; break
+        case 10: waytypeString = "Työmaa"; break
+        default: waytypeString = "Tuntematon"
+    }
     
     return {
-        routes,
+        coords,
         steepnessSummaryValue,
         steepnessSummaryDistance: summary?.distance ?? 0,
         steepnessSummaryAmount: summary?.amount ?? 0,
-        hasCobblestone: false
+        waytype: waytypeString
+    }
+}
+
+export async function fetchFootwalkRoute(startCoords: number[], endCoords: number[]): Promise<RouteResponse> {
+    const response = await fetch(`${BASE_URL}/v2/directions/foot-walking/geojson`, {
+        method: 'POST',
+        headers: {
+            Authorization: process.env.EXPO_PUBLIC_ORS_API_KEY,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            coordinates: [startCoords, endCoords],
+            extra_info: ["steepness", "waytype"],
+            alternative_routes: {
+                target_count: 3, //= reittivahtoehtojen määrä
+                weight_factor: 1.6, //= kerroin, kuinka paljon pidempi saa reitti korkeintaan olla
+                share_factor: 0.6 //= kerroin, kuinka paljon reitti korkeintaan saa mennä samaa tietä
+            }
+        })
+    })
+
+    const data = await response.json()
+    if (!data.features || data.features.length === 0) {
+        throw new Error('No route found')
+    }
+    
+    const routes: RouteOption[] = data.features.map(parseFeature)
+    
+    return {
+        routes
     }
 }
 
@@ -67,7 +91,7 @@ export async function fetchWheelchairRoute(startCoords: number[], endCoords: num
 
     const requestBody: any = {
         coordinates: [startCoords, endCoords],            
-            extra_info: ["steepness","surface"],
+            extra_info: ["steepness","surface","waytype"],
             alternative_routes: {
                 target_count: 3, //= reittivahtoehtojen määrä
                 weight_factor: 1.6, //= kerroin, kuinka paljon pidempi saa reitti korkeintaan olla
@@ -116,48 +140,9 @@ export async function fetchWheelchairRoute(startCoords: number[], endCoords: num
         throw new Error('No route found')
     }
     
-    const routes: RouteOption[] = data.features.map((feature: any) => ({
-        coords: feature.geometry.coordinates.map(
-            ([lon, lat]: [number, number]) => ({
-            latitude: lat,
-            longitude: lon
-        }))
-    }))
-
-    const feature = data.features[0]
-
-    // Jyrkkyys?
-    const steepness = feature?.properties.extras?.steepness
-    const summary = steepness?.summary?.[0]
-    let steepnessSummaryValue = summary?.value ?? 0
-    switch (steepnessSummaryValue) {
-        case -5: steepnessSummaryValue = -16; break
-        case -4: steepnessSummaryValue = -10; break
-        case -3: steepnessSummaryValue = -7; break
-        case -2: steepnessSummaryValue = -4; break
-        case -1: steepnessSummaryValue = -1; break
-        case 0: steepnessSummaryValue = 0; break
-        case 1: steepnessSummaryValue = 1; break
-        case 2: steepnessSummaryValue = 4; break
-        case 3: steepnessSummaryValue = 7; break
-        case 4: steepnessSummaryValue = 10; break
-        case 5: steepnessSummaryValue = 16; break
-    }
-
-    // Tarkistus onko reitillä mukulakiveä
-    const surface = feature?.properties.extras?.surface
-    let hasCobblestone = false
-    if (surface?.values) {
-        hasCobblestone = surface.values.some(
-            ([_, __, surfaceId]: [number, number, number]) => surfaceId === 14
-        )
-    }
+    const routes: RouteOption[] = data.features.map(parseFeature)
     
     return {
-        routes,
-        steepnessSummaryValue,
-        steepnessSummaryDistance: summary?.distance ?? 0,
-        steepnessSummaryAmount: summary?.amount ?? 0,
-        hasCobblestone
+        routes
     }
 }
