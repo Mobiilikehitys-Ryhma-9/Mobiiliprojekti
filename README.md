@@ -32,10 +32,15 @@ Tarvitset sovelluksen testaamiseen älypuhelimen ja siihen Expo Go sovelluksen. 
 
 
 ## Technical information
+Sovellus on tehty React Nativella, jossa on käytetty TypeScriptiä. Sovelluksessa hyödynnetään: 
+- [OpenRouteService](https://openrouteservice.org/)
+- [Google Firebase Firestore](https://firebase.google.com/)
+- [Cloudinary](https://cloudinary.com/)
+
+## Poster?
 
 
 ## Muu
 
 Ryhmän työtunti kirjaukset löytyvät täältä: [Työaikataulu](https://unioulu.sharepoint.com/:x:/r/sites/Mobiilikehitys-Ryhm9/_layouts/15/Doc.aspx?sourcedoc=%7B309F4982-980D-4279-B633-1D7A4FECF6A8%7D&file=Ty%C3%B6ajan%20seuranta.xlsx&action=default&mobileredirect=true)
 
-## Poster?
