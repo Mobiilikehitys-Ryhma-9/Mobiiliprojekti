@@ -169,7 +169,7 @@ export default function MapScreen({ navigation, user }: Props) {
         <FAB
           icon="plus"
           label="Lisää ilmoitus"
-          style={styles.fab}
+          style={!route ? styles.fabBottom : styles.fabUpper}
           onPress={() => setShowPinDialog(true)}
         />
       )}
@@ -227,10 +227,13 @@ export default function MapScreen({ navigation, user }: Props) {
                     Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
                     </Text> */}
                   <Text>
-                    Jyrkkyys: {selectedRoute.steepnessSummaryValue ?? 0} %
+                    Jyrkkysarvo: {selectedRoute?.steepnessSummaryValue ?? 0}
                   </Text>
                   <Text>
                     Matka: {selectedRoute.steepnessSummaryDistance ?? 0} m
+                  </Text>
+                  <Text>
+                    Enimmäkseen reitti on tyyppiä: {selectedRoute.waytype}
                   </Text>
                 </View>
               )}
@@ -288,12 +291,19 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 
-  fab: {
+  fabUpper: {
+    position: "absolute",
+    right: 16,
+    bottom: 130,
+    zIndex: 20,
+  },
+  fabBottom: {
     position: "absolute",
     right: 16,
     bottom: 16,
     zIndex: 20,
   },
+
   pinPopup: {
     width: 180,
     padding: 10,

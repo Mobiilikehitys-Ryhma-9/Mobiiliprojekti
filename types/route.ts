@@ -8,6 +8,7 @@ export type RouteOption = {
     steepnessSummaryValue: number
     steepnessSummaryDistance: number
     steepnessSummaryAmount: number
+    waytype: string
 }
 
 export type RouteResponse = {
