@@ -3,8 +3,9 @@ import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet, Alert } fr
 import { MaterialIcons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
-import { auth } from "../services/firebase"; 
+import { auth, db } from "../services/firebase"; 
 import { createUserWithEmailAndPassword } from "firebase/auth"; 
+import { setDoc, doc } from "firebase/firestore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
 
@@ -57,7 +58,14 @@ export default function RegisterScreen({ navigation }: Props) {
     }
 
     try { 
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user
+
+      await setDoc(doc(db, "users", user.uid), {
+        username: email.split("@")[0],
+        likes: 0,
+      })
+      
       Alert.alert("Onnistui", "Tili luotu!");
       navigation.navigate("Login"); 
     } catch (error: any) {
