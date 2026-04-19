@@ -22,14 +22,18 @@ export default function NavigationBar({ user }: { user: any }) {
 
     return (
 
-        <Tab.Navigator initialRouteName='Kartta'>
+        <Tab.Navigator initialRouteName='Kartta'
+            screenOptions={{
+                headerShown: true,
+                tabBarActiveTintColor: '#6200ee',}}
+        >
 
             <Tab.Screen name="Profiili" component={ProfileWrapper}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <MaterialIcons name="person" size={size} color={color} />
                     ),
-                    animation: 'fade'
+                
                 }}
             />
 
@@ -40,7 +44,7 @@ export default function NavigationBar({ user }: { user: any }) {
                     tabBarIcon: ({ color, size }) => (
                         <MaterialIcons name="map" size={size} color={color} />
                     ),
-                    animation: 'fade'
+                
                 }}
             />
 
@@ -49,7 +53,7 @@ export default function NavigationBar({ user }: { user: any }) {
                     tabBarIcon: ({ color, size }) => (
                         <MaterialIcons name="warning" size={size} color={color} />
                     ),
-                    animation: 'fade'
+                    
                 }}
             />
         </Tab.Navigator>
