@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 
-import { fetchRoute } from '../services/routeService';
-import { RouteResponse } from '../types/route';
+import { fetchFootwalkRoute, fetchWheelchairRoute } from '../services/routeService';
+import { RoutePoint, RouteResponse } from '../types/route';
+import { MapPin } from "../types/Pin";
+import { collection, onSnapshot, query } from 'firebase/firestore';
+import { db } from '../services/firebase'
 
 const API_KEY = process.env.EXPO_PUBLIC_ORS_API_KEY
 
@@ -12,39 +15,110 @@ const end: [number, number] = [25.470582, 65.012075]
 export type Profile = 'foot-walking' | 'wheelchair'
 
 export function useMap() {
+    const [startLocation, setStartLocation] = useState<string>('')
     const [destination, setDestination] = useState<string>('')
-    const [startCoords, setStartCoords] = useState<[number, number]>(start)
-    const [endCoords, setEndCoords] = useState<[number, number]>(end)
+    const [routePoints, setRoutePoints] = useState<RoutePoint | null>(null)
     const [route, setRoute] = useState<RouteResponse | null>(null)
     const [profile, setProfile] = useState<Profile>('foot-walking')
+    const [obstaclePins, setObstaclePins] = useState<MapPin[]>([])
+    const [loading, setLoading] = useState<boolean>(false)
+    const [routeWarning, setRouteWarning] = useState<string | null>(null)
 
     useEffect(() => {
-        const getRoute = async () => {
-            const data = await fetchRoute(profile, startCoords, endCoords)
-            setRoute(data) 
-        }
-        getRoute()
-    }, [startCoords, endCoords, profile])
+        const q = query(collection(db, "pins"))
 
-    const geoCodeAddress = async () => {
-        const response = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${API_KEY}&text=${encodeURIComponent(destination)}`)
-        const data = await response.json()
-        if (data.features?.length > 0) {
-          const [lon, lat] = data.features[0].geometry.coordinates
-          setEndCoords([lon, lat])
-        }
-      }
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const now = Date.now()
 
+            const pinsFromDoc: MapPin[] = snapshot.docs
+                .map(doc => {
+                    const data = doc.data()
+
+                    return {
+                        message: data.message,
+                        image: data.image,
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                        isBlockingRoute: data.isBlockingRoute,
+                        category: data.category,
+                        expiresAt: data.expiresAt
+                    } as MapPin
+                })
+                .filter(p => p.expiresAt > now)
+            setObstaclePins(pinsFromDoc)
+        })
+
+        return () => unsubscribe()
+    }, [])
+
+    const handleRouteSearch = async () => {
+        setLoading(true)
+        setRouteWarning(null)
+        const start = await geoCodeAddress(startLocation)
+        const end = await geoCodeAddress(destination)
+        
+        try {
+            if (!start || !end) return
+            
+            let data: RouteResponse
+            setRoutePoints({ start, end })
+
+            const routeBlockingPins = obstaclePins.filter(p => p.isBlockingRoute)
+
+            if (profile === 'foot-walking') {
+                data = await fetchFootwalkRoute(start, end)
+                setRoute(data)
+            } else if (profile === 'wheelchair') {
+                try {
+                    data = obstaclePins.length > 0
+                        ? await fetchWheelchairRoute(start, end, routeBlockingPins)
+                        : await fetchWheelchairRoute(start, end)
+                    setRoute(data)
+                } catch (err) {
+                    console.log('Wheelchair route fetch failed, falling back to walking route')
+                    data = await fetchFootwalkRoute(start, end)
+                    setRoute(data)
+                    setRouteWarning('Esteetöntä reittiä pyörätuolille ei löytynyt. Näytetään kävelyreitti.')
+                }
+            }
+        } catch (err) {
+            console.error('Route search exception:', err)
+            setRouteWarning('Reitin haku epäonnistui')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const geoCodeAddress = async (
+        address: string
+    ): Promise<[number, number] | null> => {
+        try {
+            const response = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${API_KEY}&text=${encodeURIComponent(address)}`)
+            const data = await response.json()
+            if (data.features?.length > 0) {
+                const [lon, lat] = data.features[0].geometry.coordinates
+                return [lon, lat]
+            }
+            return null
+        } catch (err) {
+            console.error('Geocode error:', err)
+            return null
+        }
+    }
+    
     return { 
+        startLocation,
+        setStartLocation,
         destination, 
         setDestination,
-        startCoords, 
-        setStartCoords,
-        endCoords, 
-        setEndCoords, 
-        route, 
-        profile, 
+        routePoints,
+        route,
+        profile,
         setProfile,
-        geoCodeAddress
+        obstaclePins,
+        setObstaclePins,
+        handleRouteSearch,
+        loading,
+        routeWarning
     } as const
 }

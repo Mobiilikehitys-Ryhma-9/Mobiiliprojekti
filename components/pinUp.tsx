@@ -1,101 +1,180 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Modal, Pressable, TextInput, Image } from 'react-native';
-import React, {useState} from 'react';
-import PinUpCamera from './pinUpCamera';
+import { StyleSheet, Text, View, Modal, Pressable, Image } from "react-native";
+import { TextInput, Button, Checkbox } from "react-native-paper";
+import React, { useState } from "react";
+import * as Location from "expo-location";
+import PinUpCamera from "./pinUpCamera";
 import { MapPin } from "../types/Pin";
+import { Picker } from "@react-native-picker/picker";
+import { saveToFirebase } from "../services/pinService";
+import { uploadImage } from "../services/imageService";
 
 type Props = {
   pins: MapPin[];
   setPins: React.Dispatch<React.SetStateAction<MapPin[]>>;
+  visible: boolean;
+  onClose: () => void;
+  onCameraOpen?: (open: boolean) => void;
+  imageUri?: string | null;
+  setImageUri?: (uri: string | null) => void;
 };
 
-export default function PinUp({pins, setPins}: Props) {
-const [ModalVisible, setModalVisible] = useState(false)
-const [Pinmessage, setPinmessage] = useState('')
-const [imageUri, setImageUri] = useState<string | undefined>();
-const [showCamera, setShowCamera] = useState(false);
+export default function PinUp({
+  pins,
+  setPins,
+  visible,
+  onClose,
+  onCameraOpen,
+  imageUri,
+  setImageUri,
+}: Props) {
+  const [ModalVisible, setModalVisible] = useState(false);
+  const [Pinmessage, setPinmessage] = useState("");
+  const [showCamera, setShowCamera] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [category, setCategory] = useState<"short" | "medium" | "long">(
+    "medium",
+  );
+  const [isBlockingRoute, setIsBlockingRoute] = useState<boolean>(false);
 
-const savePin = () => {
-   if (!Pinmessage.trim() && !imageUri) return;
-  
-   const newPin: MapPin = {
-    message: Pinmessage,
-    image: imageUri
+  const CATEGORY_DURATION = {
+    short: 1 * 60 * 1000, // 1 min
+    medium: 5 * 60 * 1000, // 5 min
+    long: 60 * 60 * 1000, // 1 h
   };
 
-  setPins([...pins, newPin]);
-  setPinmessage('')
-  setImageUri(undefined)
-  setModalVisible(false)
-};
+  const savePin = async () => {
+    if (isSaving) return;
 
-const cancelPin = () => {
-  setPinmessage('');
-  setImageUri(undefined);
-  setModalVisible(false);
-};
+    if (!Pinmessage.trim() && !imageUri) {
+      alert("Lisää teksti tai kuva");
+      return;
+    }
 
-const handlePictureTaken = (uri: string) => {
-   setShowCamera(false);
-  if (uri) {
-    setImageUri(uri);
-  }
-  setModalVisible(true);
-};
+    setIsSaving(true);
 
-if (showCamera) {
-  return <PinUpCamera onPictureTaken={handlePictureTaken} />;
-}
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission denied");
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const duration = CATEGORY_DURATION[category];
+      
+      let imagePath: string | undefined = undefined;
+      if (imageUri) {
+        const uploadedUrl = await uploadImage(imageUri);
+        if (uploadedUrl) imagePath = uploadedUrl
+      }
+
+      const newPin: MapPin = {
+        message: Pinmessage,
+        image: imagePath,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        category: category,
+        expiresAt: Date.now() + duration,
+        isBlockingRoute
+      };
+
+      await saveToFirebase(newPin)
+
+      setPins((prev) => [...prev, newPin]);
+      setPinmessage("");
+      setImageUri?.(null);
+      onClose();
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const cancelPin = () => {
+    setPinmessage("");
+    setImageUri?.(null);
+    onClose();
+  };
+
+  const handlePictureTaken = (uri: string) => {
+    setShowCamera(false);
+    onCameraOpen?.(false);
+    if (uri) {
+      setImageUri?.(uri);
+    }
+    setModalVisible(true);
+  };
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+
+      setPins((prev) => prev.filter((pin) => pin.expiresAt > now));
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [setPins]);
 
   return (
     <View style={styles.container}>
-      
-      <Pressable
-        style={styles.openButton}
-        onPress={() => setModalVisible(true)}>
-        <Text style={styles.showText}>Add Pin</Text>
-      </Pressable>
-
-      <Text>Message: {Pinmessage}</Text>
-
       <Modal
-      animationType='slide'
-      transparent={true}
-      visible={ModalVisible}
-      onRequestClose={() => {
-        setModalVisible(false)
-      }}>
+        animationType="slide"
+        transparent={true}
+        visible={visible}
+        onRequestClose={onClose}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <TextInput
+              style={styles.writePin}
+              placeholder="Kuvaus"
+              value={Pinmessage}
+              onChangeText={setPinmessage}
+            />
 
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          
-          <TextInput style = {styles.writePin}
-          placeholder='text'
-          value={Pinmessage}
-          onChangeText={setPinmessage}
-          />
+            <View style={{ flexDirection: "row", alignItems: "center"}}>
+              <Checkbox 
+                status={isBlockingRoute ? "checked" : "unchecked"}
+                onPress={() => setIsBlockingRoute(!isBlockingRoute)} />
+              <Text>Estää reitin kokonaan</Text>
+            </View>
+            <Button
+              style={styles.cameraButton}
+              icon="camera"
+              mode="outlined"
+              onPress={() => {
+                onCameraOpen?.(true);
+                onClose();
+              }}
+            >
+              <Text style={styles.closeText}>Camera</Text>
+            </Button>
 
+            <View style={styles.picker}>
+              <Picker
+                selectedValue={category}
+                onValueChange={(itemValue: "short" | "medium" | "long") =>
+                  setCategory(itemValue as "short" | "medium" | "long")
+                }
+              >
+                <Picker.Item label="Tien este (1 min)" value="short" />
+                <Picker.Item label="Liikenne (5 min)" value="medium" />
+                <Picker.Item label="Maasto (1 hour)" value="long" />
+              </Picker>
+            </View>
 
-          <Pressable
-          style={styles.cameraButton}
-          onPress={() => {
-          setModalVisible(false);
-          setShowCamera(true);
-          }}
-        >
-          <Text style={styles.closeText}>Camera</Text>
-          </Pressable>
-
-            <Pressable
+            <Button
               style={styles.closeButton}
-              onPress={savePin}>
-              <Text style={styles.closeText}>Save</Text>
-            </Pressable>
+              onPress={savePin}
+              disabled={isSaving}
+            >
+              <Text style={styles.closeText}>
+                {isSaving ? "Saving..." : "Save"}
+              </Text>
+            </Button>
 
-          <Pressable
-            onPress={cancelPin}>
-            <Text style={styles.closeText}>Cancel</Text>
-          </Pressable>
+            <Button onPress={cancelPin}>
+              <Text style={styles.closeText}>Cancel</Text>
+            </Button>
 
             {imageUri && (
               <Image
@@ -103,24 +182,9 @@ if (showCamera) {
                 style={{ width: 120, height: 120, marginBottom: 10 }}
               />
             )}
-
           </View>
-      </View>
+        </View>
       </Modal>
-
-        {pins.map((pin, index) => (
-        <View key={index} style={{marginTop:20}}>
-        <Text>{pin.message}</Text>
-
-        {pin.image && (
-        <Image
-        source={{ uri: pin.image }}
-        style={{ width: 200, height: 200 }}
-      />
-    )}
-  </View>
-))}
-      <StatusBar style="auto" />
     </View>
   );
 }
@@ -128,48 +192,48 @@ if (showCamera) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  showText:{
+  showText: {
     fontSize: 16,
-    fontWeight: '500'
+    fontWeight: "500",
   },
   centeredView: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
   },
-  modalView:{
-    width: '90%',
-    backgroundColor: 'rgb(255, 255, 255)',
+  modalView: {
+    width: "90%",
+    backgroundColor: "white",
     padding: 20,
-    borderRadius: 5,
-    alignItems: 'center',
-
+    borderRadius: 16,
+    elevation: 5,
+    gap: 12,
   },
-  modalText:{
+  modalText: {
     marginBottom: 15,
-    fontWeight: '500'
-  }, 
-  closeButton:{
+    fontWeight: "500",
+  },
+  closeButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    fontWeight: '500'
+    fontWeight: "500",
   },
-  closeText:{
-    fontWeight: '500'
+  closeText: {
+    fontWeight: "500",
   },
-  openButton:{
-
+  openButton: {},
+  writePin: {},
+  cameraButton: {},
+  picker: {
+    width: "100%",
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
   },
-  writePin:{
-
-  },
-  cameraButton:{
-
-  }
 });

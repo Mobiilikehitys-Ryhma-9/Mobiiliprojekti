@@ -1,141 +1,151 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, Button, StyleSheet, Alert } from "react-native"; 
+import { MaterialIcons } from "@expo/vector-icons";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../App";
+import { auth, db } from "../services/firebase"; 
+import { createUserWithEmailAndPassword } from "firebase/auth"; 
+import { setDoc, doc } from "firebase/firestore";
 
-export default function RegisterScreen() {
-    const [password, setPassword] = useState("");
-    const [passwordError, setPasswordError] = useState("")
-    const [passwordMatch, setPasswordMatch] = useState("")
-    const [email, setEmail] = useState("")
-    const [emailError, setEmailError] = useState("")
+type Props = NativeStackScreenProps<RootStackParamList, "Register">;
 
-    const checkPassword = (password: string) => {
-        // Tarkistaa sisältääkö salasana ison kirjaimen, numeron ja onko vähintään 8 merkkiä pitkä
-        // ?=.*[A-Z] = Onko isoa kirjainta missään kohdassa
-        // jne...
-        const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/
-        return passwordRegex.test(password)
+export default function RegisterScreen({ navigation }: Props) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmError, setConfirmError] = useState("");
+
+  // ✅ validoinnit
+  const checkEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const checkPassword = (password: string) => {
+    // vähintään 8 merkkiä, yksi iso kirjain ja numero
+    const regex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return regex.test(password);
+  };
+
+  useEffect(() => {
+    if (email.length === 0) return setEmailError("");
+    setEmailError(checkEmail(email) ? "" : "Virheellinen sähköposti");
+  }, [email]);
+
+  useEffect(() => {
+    if (password.length === 0) return setPasswordError("");
+    setPasswordError(
+      checkPassword(password)
+        ? ""
+        : "Salasanassa oltava 8 merkkiä, iso kirjain ja numero"
+    );
+  }, [password]);
+
+  useEffect(() => {
+    if (confirmPassword.length === 0) return setConfirmError("");
+    setConfirmError(
+      confirmPassword === password ? "" : "Salasanat eivät täsmää"
+    );
+  }, [confirmPassword, password]);
+
+  const handleRegister = async () => { 
+    if (emailError || passwordError || confirmError) {
+      console.log("Virheitä lomakkeessa");
+      return;
     }
 
-    const checkEmail = (email: string) => {
-        // Tarkistaa onko syötetty sähköposti oikeassa muodossa: "foo@foo.com"
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email)
+    try { 
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user
+
+      await setDoc(doc(db, "users", user.uid), {
+        username: email.split("@")[0],
+        likes: 0,
+      })
+      
+      Alert.alert("Onnistui", "Tili luotu!");
+      navigation.navigate("Login"); 
+    } catch (error: any) {
+      Alert.alert("Virhe", error.message); 
     }
+  };
 
-    // Nämä useEffektit varmaan voisi tiivistää yhdeksi apufunktioksi, mutta
-    // Joku minua viisaampi saa sen tehdä jos häiritsee
-    useEffect(() => {
-        if (password.length === 0) return setPasswordError("")
+  return (
+    <View style={styles.container}>
+      <MaterialIcons name="person-add" size={64} color="#6200ee" style={styles.icon} />
 
-        setPasswordError(checkPassword(password)
-            ? ""
-            : "Salasanassa tulee olla vähintään 8 merkkiä, yksi iso kirjain ja yksi numero.")
-    }, [password])
+      <Text style={styles.title}>Luo tili</Text>
 
-    useEffect(() => {
-        if (email.length === 0) return setEmailError("")
+      {/* Email */}
+      <TextInput
+        style={[styles.input, emailError ? { borderColor: "red" } : {}]}
+        placeholder="Sähköposti"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
 
-        setEmailError(checkEmail(email)
-            ? ""
-            : "Virheellinen sähköposti osoite.")
-    }, [email])
+      {/* Password */}
+      <TextInput
+        style={[styles.input, passwordError ? { borderColor: "red" } : {}]}
+        placeholder="Salasana"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      {passwordError ? <Text style={styles.error}>{passwordError}</Text> : null}
 
-    return (
-        <View style={styles.container}>
-            < Text style={styles.title}>Luo uusi käyttäjä</Text>
+      {/* Confirm Password */}
+      <TextInput
+        style={[styles.input, confirmError ? { borderColor: "red" } : {}]}
+        placeholder="Vahvista salasana"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        secureTextEntry
+      />
+      {confirmError ? <Text style={styles.error}>{confirmError}</Text> : null}
 
-            <Text />
-            <TextInput
-                style={styles.input}
-                placeholder="Nimi"
-            />
+      <Button title="Rekisteröidy" onPress={handleRegister} /> 
 
-            {/* Virheilmoitus käyttäjälle näkyviin, mikäli email ei sisällä @ merkkiä */}
-            {email.length > 0 && (
-                <Text style={{ color: "red", marginBottom: 10 }}>
-                    {emailError}
-                </Text>
-            )}
-
-            <TextInput
-                style={[
-                    styles.input,
-                    emailError ? { borderColor: "red", borderWidth: 2 } : {}
-                ]}
-                placeholder="Email"
-                onChangeText={setEmail}
-            />
-
-            {/* Virheilmoitus käyttäjälle näkyviin, mikäli salasana ei seuraa regex ohjeita */}
-            {passwordError.length > 0 && (
-                <Text style={{ color: "red", marginBottom: 10, alignSelf: "flex-start" }}>
-                    {passwordError}
-                </Text>
-            )}
-
-            <TextInput
-                style={[
-                    styles.input,
-                    passwordError ? { borderColor: "red", borderWidth: 2 } : {}
-                ]}
-                placeholder="Salasana"
-                secureTextEntry
-                onChangeText={setPassword}
-            />
-
-            {/* Virheilmoitus käyttäjälle näkyviin, mikäli salasanat ei täsmää */}
-            {passwordMatch.length > 0 && (
-                <Text style={{ color: "red", marginBottom: 10, alignSelf: "flex-start" }}>
-                    {passwordMatch}
-                </Text>
-            )}
-
-            <TextInput
-                style={[
-                    styles.input,
-                    passwordMatch ? { borderColor: "red", borderWidth: 2 } : {}
-                ]}
-                placeholder="Varmista salasana"
-                secureTextEntry
-                onChangeText={(text) => {
-                    setPasswordMatch(text);
-                    setPasswordMatch(text !== password ? "Salasanat eivät täsmää." : "");
-                }}
-            />
-
-            <TouchableOpacity onPress={() => { /* Navigoi takaisin LoginScreeniin */ }}>
-                <Text style={styles.forgotPassword}>Oletko jo käyttäjä? Kirjaudu sisään tästä.</Text>
-            </TouchableOpacity>
-
-            <Button title="Jatka"></Button>
-            {/* Firebase logiikka, tarkistaa onko sähköposti/käyttäjänimi jo varattu jne. */}
-            {/* Siirtyy profiilin teko screeniin, profiilikuvan asettaminen ym.? */}
-        </View>
-    )
+      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <Text style={styles.backToLogin}>Takaisin kirjautumiseen</Text>
+      </TouchableOpacity>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 16,
-        backgroundColor: "#fff"
-    },
-    title: { fontSize: 24, marginBottom: 20, fontWeight: "bold", color: "#6200ee" },
-    input: {
-        width: "100%",
-        padding: 14,
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 8,
-        marginBottom: 20,
-        backgroundColor: "#f9f9f9"
-    },
-    forgotPassword: {
-        alignSelf: "flex-end",
-        marginBottom: 20,
-        color: "#6200ee",
-        textDecorationLine: "underline"
-    },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#fff",
+  },
+  icon: { marginBottom: 20 },
+  title: { fontSize: 24, marginBottom: 20, fontWeight: "bold", color: "#6200ee" },
+  input: {
+    width: "100%",
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    marginBottom: 5,
+    backgroundColor: "#f9f9f9",
+  },
+  error: {
+    color: "red",
+    marginBottom: 8,
+    alignSelf: "flex-start",
+  },
+  backToLogin: {
+    marginTop: 20,
+    color: "#6200ee",
+    textDecorationLine: "underline",
+  },
 });
