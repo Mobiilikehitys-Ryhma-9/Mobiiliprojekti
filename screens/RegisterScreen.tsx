@@ -67,7 +67,7 @@ export default function RegisterScreen({ navigation }: Props) {
       })
       
       Alert.alert("Onnistui", "Tili luotu!");
-      navigation.navigate("Login"); 
+      navigation.navigate("Main"); 
     } catch (error: any) {
       Alert.alert("Virhe", error.message); 
     }
