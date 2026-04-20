@@ -23,6 +23,8 @@ import { RootTabParamList } from "../types/navigation";
 
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
+import { globalStyles } from "../theme/styles";
+import { colors, spacing } from "../theme/theme";
 
 type MapScreenProps = BottomTabScreenProps<RootTabParamList, 'Kartta'> & {
   user: any;
@@ -50,7 +52,7 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
   const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0)
   const [cameraOpen, setCameraOpen] = useState(false);
 
-  const colors = ['#0072B2', '#E69F00', '#009E73']
+  const routeColors = ['#0072B2', '#E69F00', '#009E73']
   const [showInputs, setShowInputs] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
@@ -79,7 +81,7 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
 
   return (
     <SafeAreaView
-      style={[styles.container, cameraOpen && { paddingBottom: 0 }]}
+      style={[globalStyles.container, cameraOpen && { paddingBottom: 0 }]}
     >
       <MapView
         ref={mapRef}
@@ -121,14 +123,12 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
         ))}
 
         {route?.routes?.map((r, index) => {
-          const colors = ["#007AFF", "#34C759", "#FF9500"];
-
           return (
             <Polyline
               key={index}
               coordinates={r.coords}
               strokeWidth={index === 0 ? 4 : 2}
-              strokeColor={colors[index] || "gray"}
+              strokeColor={routeColors[index] || "gray"}
             />
           );
         })}
@@ -136,8 +136,6 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
 
       {!cameraOpen && showInputs && (
         <>
-
-
           <MapControls
             startLocation={startLocation}
             setStartLocation={setStartLocation}
@@ -152,14 +150,14 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
 
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" />
-          <Text>Haetaan reittiä...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[globalStyles.text, { marginTop: spacing.sm }]}>Haetaan reittiä...</Text>
         </View>
       )}
 
       {selectedPin && (
-        <View style={styles.bottomSheet}>
-          <Text style={styles.sheetTitle}>{selectedPin.message}</Text>
+        <View style={[globalStyles.card, styles.bottomSheet]}>
+          <Text style={globalStyles.heading}>{selectedPin.message}</Text>
 
           {selectedPin.image && (
             <Image
@@ -167,8 +165,10 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
               style={styles.sheetImage}
             />
           )}
-
-          <Button onPress={() => setSelectedPin(null)}>Sulje</Button>
+          <TouchableOpacity style={[globalStyles.button, {marginTop: spacing.md}]} 
+            onPress={() => setSelectedPin(null)}>
+            <Text style={globalStyles.buttonText}>Sulje</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -209,7 +209,7 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
         <>
           <View style={styles.info}>
             {routeWarning && (
-              <Text>
+              <Text style={[globalStyles.text, { marginBottom: spacing.sm }]}>
                 {routeWarning}
               </Text>
             )}
@@ -220,8 +220,8 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
                   onPress={() => setSelectedRouteIndex(index)}
                   style={[styles.routeButton, index === selectedRouteIndex && styles.routeButtonActive]}
                   >
-                    <View style={{width: 10, height: 10, borderRadius: 5, backgroundColor: colors[index], marginBottom: 4}} />
-                    <Text style={{color: index === selectedRouteIndex ? 'white' : 'black'}}>
+                    <View style={{width: 10, height: 10, borderRadius: 5, backgroundColor: routeColors[index], marginBottom: 4}} />
+                    <Text style={{color: index === selectedRouteIndex ? '#fff' : colors.textPrimary}}>
                       {`Vaihtoehto ${index + 1}`}
                     </Text>
                   </TouchableOpacity>
@@ -277,9 +277,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 12,
     right: 12,
-    backgroundColor: "white",
+    backgroundColor: colors.surface,
     padding: 10,
-    maxHeight: 200
+    maxHeight: 200,
+    borderRadius: 12
   },
   routeSelector: {
     flexDirection: 'row',
@@ -292,7 +293,7 @@ const styles = StyleSheet.create({
     borderRadius: 8
   },
   routeButtonActive: {
-    backgroundColor: '#333'
+    backgroundColor: colors.secondary
   },
   routeDetails: {
     marginTop: 5,

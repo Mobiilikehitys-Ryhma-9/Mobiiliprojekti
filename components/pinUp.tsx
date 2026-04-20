@@ -31,15 +31,18 @@ export default function PinUp({
   const [Pinmessage, setPinmessage] = useState("");
   const [showCamera, setShowCamera] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [category, setCategory] = useState<"short" | "medium" | "long">(
+  const [category, setCategory] = useState<"demo" | "short" | "medium" | "long" | "superLong" | "doubleLong">(
     "medium",
   );
   const [isBlockingRoute, setIsBlockingRoute] = useState<boolean>(false);
 
   const CATEGORY_DURATION = {
-    short: 1 * 60 * 1000, // 1 min
-    medium: 5 * 60 * 1000, // 5 min
-    long: 60 * 60 * 1000, // 1 h
+    demo: 1 * 60 * 1000, // 1 min
+    short: 60 * 60 * 1000, // 1h
+    medium: 24 * 60 * 60 * 1000, // 24h
+    long: 48 * 60 * 60 * 1000, // 48 h
+    superLong: 168 * 60 * 60 * 1000, // viikko
+    doubleLong: 336 * 60 * 60 * 1000, // 2 viikko
   };
 
   const savePin = async () => {
@@ -152,13 +155,16 @@ export default function PinUp({
             <View style={styles.picker}>
               <Picker
                 selectedValue={category}
-                onValueChange={(itemValue: "short" | "medium" | "long") =>
-                  setCategory(itemValue as "short" | "medium" | "long")
+                onValueChange={(itemValue: "demo" | "short" | "medium" | "long" | "superLong" | "doubleLong") =>
+                  setCategory(itemValue as "demo" | "short" | "medium" | "long" | "superLong" | "doubleLong")
                 }
               >
-                <Picker.Item label="Tien este (1 min)" value="short" />
-                <Picker.Item label="Liikenne (5 min)" value="medium" />
-                <Picker.Item label="Maasto (1 hour)" value="long" />
+                <Picker.Item label="demo (1 min)" value="demo" />
+                <Picker.Item label="1h" value="short" />
+                <Picker.Item label="24 h" value="medium" />
+                <Picker.Item label="48 h" value="long" />
+                <Picker.Item label="1 viikko" value="superLong" />
+                <Picker.Item label="2 viikkoa" value="doubleLong" />
               </Picker>
             </View>
 
