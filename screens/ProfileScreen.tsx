@@ -138,10 +138,10 @@ export default function ProfileScreen({ navigation }: Props) {
 
             <View>
               {/* Hae käyttäjänimi oikeasti firebasesta */}
-              <Text style={[globalStyles.text, styles.username]}>{username}</Text>
+              <Text style={[globalStyles.text, styles.username]}>{userData?.username ?? "Ei nimeä asetettu"}</Text>
               <View style={styles.likeContainer}>
                 <MaterialIcons name="thumb-up" size={20} color={colors.primary} />
-                <Text style={globalStyles.text}>{likes}</Text>
+                <Text style={globalStyles.text}>{userData?.likes}</Text>
               </View>
             </View>
           </View>
@@ -150,7 +150,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
           {/* Tässä itse lista käyttäjän ilmoituksista */}
           <FlatList
-            data={userAlert}
+            data={userPins}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={[globalStyles.card, styles.alertBox]}>
@@ -305,11 +305,11 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     elevation: 10,
   },
-  // menuTitle: {
-  //   fontSize: 20,
-  //   fontWeight: 'bold',
-  //   marginBottom: 20,
-  // },
+  menuTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
   // menuButton: {
   //   backgroundColor: '#eee',
   //   padding: 12,
@@ -336,5 +336,9 @@ const styles = StyleSheet.create({
   //   paddingVertical: 16,
   //   paddingHorizontal: 20,
   // }
-
+  cancelText: {
+        marginTop: 20,
+        color: 'red',
+        textAlign: "center"
+    },
 });
