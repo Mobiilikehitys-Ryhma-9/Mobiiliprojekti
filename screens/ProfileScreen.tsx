@@ -11,6 +11,8 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons'
 import { View, Text, Image, TextInput, TouchableOpacity, Button, StyleSheet, FlatList } from "react-native"
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
+import { globalStyles } from '../theme/styles';
+import { colors } from '../theme/theme';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Profiili'>;
 
@@ -75,18 +77,17 @@ export default function ProfileScreen({ navigation }: Props) {
   ];
 
   return (
-
-    <View style={styles.container}>
+    <View style={globalStyles.container}>
       {user ? (
 
-        <View style={{ flex: 1, backgroundColor: "white" }}>
+        <View style={{ flex: 1 }}>
 
           <View style={{ alignItems: 'flex-start', width: '100%' }}>
             <TouchableOpacity
               style={styles.sideWidget}
               onPress={() => setUserSettings(!userSettings)}
             >
-              <Ionicons name="menu" size={32} color="gray" />
+              <Ionicons name="menu" size={32} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -100,10 +101,10 @@ export default function ProfileScreen({ navigation }: Props) {
 
             <View>
               {/* Hae käyttäjänimi oikeasti firebasesta */}
-              <Text style={styles.username}>{username}</Text>
+              <Text style={[globalStyles.text, styles.username]}>{username}</Text>
               <View style={styles.likeContainer}>
-                <MaterialIcons name="thumb-up" size={24} color="green" />
-                <Text>{likes}</Text>
+                <MaterialIcons name="thumb-up" size={20} color={colors.primary} />
+                <Text style={globalStyles.text}>{likes}</Text>
               </View>
             </View>
           </View>
@@ -115,15 +116,15 @@ export default function ProfileScreen({ navigation }: Props) {
             data={userAlert}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View style={styles.alertBox}>
-                <Text style={styles.areaText}>{item.area}</Text>
-                <Text style={styles.alertText}>{item.text}</Text>
+              <View style={[globalStyles.card, styles.alertBox]}>
+                <Text style={[globalStyles.text, styles.areaText]}>{item.area}</Text>
+                <Text style={[globalStyles.text]}>{item.text}</Text>
 
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => deleteItem(item.id)}
                 >
-                  <MaterialIcons name="delete" size={24} color="red" />
+                  <MaterialIcons name="delete" size={22} color="red" />
                 </TouchableOpacity>
 
               </View>
@@ -133,19 +134,19 @@ export default function ProfileScreen({ navigation }: Props) {
           {userSettings && (
             <>
               <View style={styles.centerMenu}>
-                <Text style={styles.menuTitle}>Settings</Text>
+                <Text style={globalStyles.heading}>Asetukset</Text>
 
                 {menuItems.map((item) => (
                   <TouchableOpacity
                     key={item.label}
-                    style={styles.menuButton}
+                    style={globalStyles.button}
                     onPress={item.onPress}>
-                    <Text style={styles.menuButtonText}>{item.label}</Text>
+                    <Text style={globalStyles.buttonText}>{item.label}</Text>
                   </TouchableOpacity>
                 ))}
 
                 <TouchableOpacity onPress={() => setUserSettings(false)}>
-                  <Text style={{ marginTop: 20, color: 'red', alignSelf: 'center' }}>Close</Text>
+                  <Text style={globalStyles.link}>Sulje</Text>
                 </TouchableOpacity>
 
               </View>
@@ -157,9 +158,9 @@ export default function ProfileScreen({ navigation }: Props) {
         </View>
 
       ) : (
-        <View style={{ alignItems: "center" }}>
-          <TouchableOpacity style={styles.signUpButton} onPress={() => navigation.navigate("Login")}>
-            <Text style={styles.signUpText}>Kirjaudu sisään</Text>
+        <View style={[globalStyles.container, globalStyles.center]}>
+          <TouchableOpacity style={globalStyles.button} onPress={() => navigation.navigate("Login")}>
+            <Text style={globalStyles.buttonText}>Kirjaudu sisään</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -169,10 +170,10 @@ export default function ProfileScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff"
-  },
+  // container: {
+  //   flex: 1,
+  //   backgroundColor: "#fff"
+  // },
 
   rowContainer: {
     flexDirection: "row",
@@ -181,12 +182,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff"
   },
 
-  forgotPassword: {
-    alignSelf: "flex-end",
-    marginBottom: 20,
-    color: "#6200ee",
-    textDecorationLine: "underline"
-  },
+  // forgotPassword: {
+  //   alignSelf: "flex-end",
+  //   marginBottom: 20,
+  //   color: "#6200ee",
+  //   textDecorationLine: "underline"
+  // },
   profilePicture: {
     width: 60,
     height: 60,
@@ -213,10 +214,10 @@ const styles = StyleSheet.create({
     margin: 16,
     height: 85,
   },
-  alertText: {
-    color: "#333",
-    fontSize: 14,
-  },
+  // alertText: {
+  //   color: "#333",
+  //   fontSize: 14,
+  // },
   areaText: {
     marginTop: 4,
     color: "#555",
@@ -240,10 +241,10 @@ const styles = StyleSheet.create({
     left: 325,
     zIndex: 2,
   },
-  sideBarContent: {
-    flexDirection: 'column',
-    padding: 5,
-  },
+  // sideBarContent: {
+  //   flexDirection: 'column',
+  //   padding: 5,
+  // },
   globalDarken: {
     position: 'absolute',
     top: 0,
@@ -267,36 +268,36 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     elevation: 10,
   },
-  menuTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  menuButton: {
-    backgroundColor: '#eee',
-    padding: 12,
-    width: '100%',
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  menuButtonText: {
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  signUpContainer: {
-    flexDirection: "row",
-    marginTop: 20,
-    alignItems: "center"
-  },
-  signUpText: {
-    fontWeight: "bold",
-    color: "#6200ee",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-  },
-    signUpButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-  }
+  // menuTitle: {
+  //   fontSize: 20,
+  //   fontWeight: 'bold',
+  //   marginBottom: 20,
+  // },
+  // menuButton: {
+  //   backgroundColor: '#eee',
+  //   padding: 12,
+  //   width: '100%',
+  //   borderRadius: 8,
+  //   marginTop: 10,
+  // },
+  // menuButtonText: {
+  //   textAlign: 'center',
+  //   fontSize: 16,
+  // },
+  // signUpContainer: {
+  //   flexDirection: "row",
+  //   marginTop: 20,
+  //   alignItems: "center"
+  // },
+  // signUpText: {
+  //   fontWeight: "bold",
+  //   color: "#6200ee",
+  //   paddingVertical: 16,
+  //   paddingHorizontal: 20,
+  // },
+  //   signUpButton: {
+  //   paddingVertical: 16,
+  //   paddingHorizontal: 20,
+  // }
 
 });
