@@ -5,6 +5,8 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
 import { auth, db } from "../services/firebase"; 
 import { createUserWithEmailAndPassword } from "firebase/auth"; 
+import { globalStyles } from "../theme/styles";
+import { colors, spacing } from "../theme/theme"
 import { setDoc, doc } from "firebase/firestore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
@@ -74,14 +76,14 @@ export default function RegisterScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
-      <MaterialIcons name="person-add" size={64} color="#6200ee" style={styles.icon} />
+    <View style={[ globalStyles.container, globalStyles.center ]}>
+      <MaterialIcons name="person-add" size={64} color={colors.primary} style={{ marginBottom: spacing.lg }} />
 
-      <Text style={styles.title}>Luo tili</Text>
+      <Text style={globalStyles.heading}>Luo tili</Text>
 
       {/* Email */}
       <TextInput
-        style={[styles.input, emailError ? { borderColor: "red" } : {}]}
+        style={[globalStyles.input, emailError && styles.inputError]}
         placeholder="Sähköposti"
         value={email}
         onChangeText={setEmail}
@@ -92,7 +94,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
       {/* Password */}
       <TextInput
-        style={[styles.input, passwordError ? { borderColor: "red" } : {}]}
+        style={[globalStyles.input, passwordError && styles.inputError]}
         placeholder="Salasana"
         value={password}
         onChangeText={setPassword}
@@ -102,7 +104,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
       {/* Confirm Password */}
       <TextInput
-        style={[styles.input, confirmError ? { borderColor: "red" } : {}]}
+        style={[globalStyles.input, confirmError && styles.inputError]}
         placeholder="Vahvista salasana"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
@@ -110,42 +112,49 @@ export default function RegisterScreen({ navigation }: Props) {
       />
       {confirmError ? <Text style={styles.error}>{confirmError}</Text> : null}
 
-      <Button title="Rekisteröidy" onPress={handleRegister} /> 
+      <TouchableOpacity style={[ globalStyles.button, (emailError || passwordError || confirmError) && { opacity: 0.5 }]} 
+        disabled={!!(emailError || passwordError || confirmError)}
+        onPress={handleRegister}>
+          <Text style={globalStyles.buttonText}>Rekisteröidy</Text>
+      </TouchableOpacity> 
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-        <Text style={styles.backToLogin}>Takaisin kirjautumiseen</Text>
+        <Text style={[globalStyles.link, { marginTop: spacing.lg }]}>Takaisin kirjautumiseen</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#fff",
-  },
-  icon: { marginBottom: 20 },
-  title: { fontSize: 24, marginBottom: 20, fontWeight: "bold", color: "#6200ee" },
-  input: {
-    width: "100%",
-    padding: 12,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    marginBottom: 5,
-    backgroundColor: "#f9f9f9",
-  },
+  // container: {
+  //   flex: 1,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   padding: 16,
+  //   backgroundColor: "#fff",
+  // },
+  // icon: { marginBottom: 20 },
+  // title: { fontSize: 24, marginBottom: 20, fontWeight: "bold", color: "#6200ee" },
+  // input: {
+  //   width: "100%",
+  //   padding: 12,
+  //   borderWidth: 1,
+  //   borderColor: "#ccc",
+  //   borderRadius: 8,
+  //   marginBottom: 5,
+  //   backgroundColor: "#f9f9f9",
+  // },
   error: {
     color: "red",
-    marginBottom: 8,
+    marginBottom: spacing.sm,
     alignSelf: "flex-start",
   },
-  backToLogin: {
-    marginTop: 20,
-    color: "#6200ee",
-    textDecorationLine: "underline",
+  inputError: {
+    borderColor: 'red'
   },
+  // backToLogin: {
+  //   marginTop: 20,
+  //   color: "#6200ee",
+  //   textDecorationLine: "underline",
+  // },
 });

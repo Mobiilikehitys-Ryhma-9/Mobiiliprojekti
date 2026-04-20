@@ -4,6 +4,8 @@ import { TextInput, Button, RadioButton } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { Profile } from "../hooks/useMap"
+import { globalStyles } from "../theme/styles";
+import { borderRadius, colors, spacing } from "../theme/theme";
 
 type Props = {
     startLocation: string
@@ -80,7 +82,7 @@ export default function MapControls({
         <View style={styles.container}>
           <View style={styles.inputWrapper}>
             <TextInput
-              style={styles.input}
+              style={[globalStyles.input, {height: 40}]}
               placeholder={loadingLocation ? "Haetaan sijaintia..." : "Lähtö"}
               value={startLocation}
               onChangeText={setStartLocation}
@@ -91,13 +93,13 @@ export default function MapControls({
                 const address = await getCurrentAddress()
                 if (address) setStartLocation(address)
               }}>
-              <MaterialIcons name="my-location" size={20} color='gray' />
+              <MaterialIcons name="my-location" size={28} color={colors.textSecondary} />
             </Pressable>
           </View>
 
           <View style={styles.inputWrapper}>
             <TextInput
-              style={styles.input}
+              style={[globalStyles.input, {height: 40}]}
               placeholder="Määränpää"
               value={destination}
               onChangeText={setDestination}
@@ -110,11 +112,11 @@ export default function MapControls({
             value={profile}>
             <View style={styles.option}>
               <RadioButton value='foot-walking' />
-              <Text>Kävely</Text>
+              <Text style={globalStyles.text}>Kävely</Text>
             </View>
             <View style={styles.option}>
               <RadioButton value='wheelchair' />
-              <Text>Pyörätuoli</Text>
+              <Text style={globalStyles.text}>Pyörätuoli</Text>
             </View>
           </RadioButton.Group>
 
@@ -123,7 +125,8 @@ export default function MapControls({
             icon="magnify"
             loading={loading}
             disabled={loading}
-            style={{ marginVertical: 8, alignSelf: "center" }}
+            style={{ marginTop: spacing.sm, marginLeft: 120 }}
+            buttonColor={colors.primary}
             onPress={handleRouteSearch}
           >
             Hae Reitti
@@ -140,43 +143,42 @@ const styles = StyleSheet.create({
     top: 30,
     left: 10,
     right: 10,
-    backgroundColor: "white",
-    padding: 10,
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: borderRadius.large,
     elevation: 5,
   },
   inputWrapper: {
     position: 'relative',
     justifyContent: 'center'
   },
-  input: {
-    height: 30,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    margin: 5,
-    borderRadius: 8,
-    marginVertical: 4
-  },
+  // input: {
+  //   height: 30,
+  //   borderWidth: 1,
+  //   borderColor: '#ccc',
+  //   padding: 10,
+  //   margin: 5,
+  //   borderRadius: 8,
+  //   marginVertical: 4
+  // },
   iconBtn: {
     position: 'absolute',
+    top: 20,
     right: 10,
-    verticalAlign: 'middle',
-    elevation: 10,
-    padding: 4
+    padding: 0
   },
   option: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 4
+    marginVertical: spacing.xs
   },
   toggleButton: {
     position: "absolute",
-    top: 250,
-    right: 20,
-    backgroundColor: "#333",
-    padding: 10,
+    top: 290,
+    left: 20,
+    backgroundColor: colors.primary,
+    padding: 12,
     borderRadius: 50,
     zIndex: 10,
     elevation: 6,
@@ -184,8 +186,8 @@ const styles = StyleSheet.create({
 toggleButtonClosed: {
     position: "absolute",
     top: 45,
-    right: 20,
-    backgroundColor: "#333",
+    left: 20,
+    backgroundColor: colors.primary,
     padding: 10,
     borderRadius: 50,
     zIndex: 10,
