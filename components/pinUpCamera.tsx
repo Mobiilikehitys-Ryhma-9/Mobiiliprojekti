@@ -40,15 +40,15 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
         <Image source={{ uri: photoUri }} style={styles.camera} />
 
         <View style={styles.controls}>
-          <Button title="Retake" onPress={() => setPhotoUri(null)} />
+          <Button title="Ota uudelleen" onPress={() => setPhotoUri(null)} />
 
           <Button
-            title={photosaving ? "Saving..." : "Use Photo"}
+            title={photosaving ? "Tallennetaan..." : "Käytä kuvaa"}
             disabled={photosaving}
             onPress={() => {
               if (!photoUri) return;
 
-              // EI uploadia täällä
+              
               console.log("Returning local URI to PinUp:", photoUri);
               onPictureTaken(photoUri);
             }}
@@ -63,8 +63,8 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
       <CameraView style={styles.camera} ref={cameraRef} />
 
       <View style={styles.controls}>
-        <Button title="Go Back" onPress={() => onPictureTaken("")} />
-        <Button title="Take Picture" onPress={takePicture} />
+        <Button title="Takaisin" onPress={() => onPictureTaken("")} />
+        <Button title="Ota kuva" onPress={takePicture} />
       </View>
     </View>
   );
