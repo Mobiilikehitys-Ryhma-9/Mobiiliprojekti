@@ -1,11 +1,12 @@
 import { StyleSheet, Text, View, Modal, Pressable, Image } from "react-native";
-import { TextInput, Button } from "react-native-paper";
+import { TextInput, Button, Checkbox } from "react-native-paper";
 import React, { useState } from "react";
 import * as Location from "expo-location";
 import PinUpCamera from "./pinUpCamera";
 import { MapPin } from "../types/Pin";
 import { Picker } from "@react-native-picker/picker";
 import { saveToFirebase } from "../services/pinService";
+import { uploadImage } from "../services/imageService";
 
 type Props = {
   pins: MapPin[];
@@ -30,14 +31,18 @@ export default function PinUp({
   const [Pinmessage, setPinmessage] = useState("");
   const [showCamera, setShowCamera] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [category, setCategory] = useState<"short" | "medium" | "long">(
-    "medium",
-  );
+  const [category, setCategory] = useState<
+    "demo" | "short" | "medium" | "long" | "superLong" | "doubleLong"
+  >("medium");
+  const [isBlockingRoute, setIsBlockingRoute] = useState<boolean>(false);
 
   const CATEGORY_DURATION = {
-    short: 1 * 60 * 1000, // 1 min
-    medium: 5 * 60 * 1000, // 5 min
-    long: 60 * 60 * 1000, // 1 h
+    demo: 1 * 60 * 1000, // 1min
+    short: 60 * 60 * 1000, // 1h
+    medium: 24 * 60 * 60 * 1000, // 24 h
+    long: 48 * 60 * 60 * 1000, // 48 h
+    superLong: 168 * 60 * 60 * 1000, // viikko
+    doubleLong: 336 * 60 * 60 * 1000, // 2viikko
   };
 
   const savePin = async () => {
@@ -60,23 +65,23 @@ export default function PinUp({
       const location = await Location.getCurrentPositionAsync({});
       const duration = CATEGORY_DURATION[category];
 
+      let imagePath: string | null = null;
+      if (imageUri) {
+        const uploadedUrl = await uploadImage(imageUri);
+        if (uploadedUrl) imagePath = uploadedUrl;
+      }
+
       const newPin: MapPin = {
         message: Pinmessage,
-        image: imageUri ?? undefined,
+        image: imagePath ?? "",
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
         category: category,
         expiresAt: Date.now() + duration,
+        isBlockingRoute,
       };
 
-      await saveToFirebase({
-        message: Pinmessage,
-        image: imageUri ?? undefined,
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        category,
-        expiresAt: Date.now() + duration
-      })
+      await saveToFirebase(newPin);
 
       setPins((prev) => [...prev, newPin]);
       setPinmessage("");
@@ -105,7 +110,6 @@ export default function PinUp({
   React.useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-
       setPins((prev) => prev.filter((pin) => pin.expiresAt > now));
     }, 10000);
 
@@ -124,10 +128,18 @@ export default function PinUp({
           <View style={styles.modalView}>
             <TextInput
               style={styles.writePin}
-              placeholder="text"
+              placeholder="Kuvaus"
               value={Pinmessage}
               onChangeText={setPinmessage}
             />
+
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Checkbox
+                status={isBlockingRoute ? "checked" : "unchecked"}
+                onPress={() => setIsBlockingRoute(!isBlockingRoute)}
+              />
+              <Text>Estää reitin kokonaan</Text>
+            </View>
 
             <Button
               style={styles.cameraButton}
@@ -144,21 +156,20 @@ export default function PinUp({
             <View style={styles.picker}>
               <Picker
                 selectedValue={category}
-                onValueChange={(itemValue: "short" | "medium" | "long") =>
-                  setCategory(itemValue as "short" | "medium" | "long")
+                onValueChange={(itemValue) =>
+                  setCategory(itemValue as any)
                 }
               >
-                <Picker.Item label="Tien este (1 min)" value="short" />
-                <Picker.Item label="Liikenne (5 min)" value="medium" />
-                <Picker.Item label="Maasto (1 hour)" value="long" />
+                <Picker.Item label="demo (1 min)" value="demo" />
+                <Picker.Item label="1 h" value="short" />
+                <Picker.Item label="24 h" value="medium" />
+                <Picker.Item label="48 h" value="long" />
+                <Picker.Item label="1 viikko" value="superLong" />
+                <Picker.Item label="2 viikkoa" value="doubleLong" />
               </Picker>
             </View>
 
-            <Button
-              style={styles.closeButton}
-              onPress={savePin}
-              disabled={isSaving}
-            >
+            <Button style={styles.closeButton} onPress={savePin} disabled={isSaving}>
               <Text style={styles.closeText}>
                 {isSaving ? "Saving..." : "Save"}
               </Text>

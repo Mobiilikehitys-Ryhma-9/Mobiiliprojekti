@@ -3,6 +3,7 @@ export type MapPin = {
   image?: string;
   latitude: number;
   longitude: number;
-  category: 'short' | 'medium' | 'long'
-  expiresAt: number
+  category: 'demo' | 'short' | 'medium' | 'long' | 'superLong' | 'doubleLong';
+  expiresAt: number;
+  isBlockingRoute: boolean;
 };

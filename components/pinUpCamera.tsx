@@ -10,7 +10,6 @@ import {
 import { useEffect, useState } from "react";
 import { useRef } from "react";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
-import { uploadImage } from "../services/imageService"; //LISÄTTY
 
 type Props = {
   onPictureTaken: (uri: string) => void;
@@ -20,6 +19,7 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photosaving, setPhotoSaving] = useState(false);
 
   if (!permission?.granted) {
     requestPermission();
@@ -29,6 +29,7 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
   const takePicture = async () => {
     const photo = await cameraRef.current?.takePictureAsync();
     if (photo) {
+      console.log("Photo taken:", photo.uri); 
       setPhotoUri(photo.uri);
     }
   };
@@ -40,18 +41,16 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
 
         <View style={styles.controls}>
           <Button title="Retake" onPress={() => setPhotoUri(null)} />
+
           <Button
-            title="Use Photo"
-            onPress={async () => {
+            title={photosaving ? "Saving..." : "Use Photo"}
+            disabled={photosaving}
+            onPress={() => {
               if (!photoUri) return;
 
-              const image = {
-                uri: photoUri,
-              };
-
-              const url = await uploadImage(image); //LISÄTTY
-              console.log("CLOUDINARY URL:", url);
-              onPictureTaken(url); //MUUTETTU (lähetetään URL eikä uri)
+              // EI uploadia täällä
+              console.log("Returning local URI to PinUp:", photoUri);
+              onPictureTaken(photoUri);
             }}
           />
         </View>

@@ -1,49 +1,60 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import {
-  TextInput,
   Button,
   ActivityIndicator,
   FAB,
   RadioButton,
 } from "react-native-paper";
 import MapView, { Polyline, Marker } from "react-native-maps";
-import { Profile, useMap } from "../hooks/useMap";
+import { useMap } from "../hooks/useMap";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PinUp from "../components/pinUp";
+import PinUpCamera from "../components/pinUpCamera";
+
+import MapControls from "../components/MapControls";
 import { MapPin } from "../types/Pin";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { RootTabParamList } from "../types/navigation";
 
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
-import PinUpCamera from "../components/pinUpCamera";
+import { globalStyles } from "../theme/styles";
+import { colors, spacing } from "../theme/theme";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Map"> & {
+type MapScreenProps = BottomTabScreenProps<RootTabParamList, "Kartta"> & {
   user: any;
 };
 
-export default function MapScreen({ navigation, user }: Props) {
+export default function MapScreen({ navigation, user }: MapScreenProps) {
   const {
     startLocation,
     setStartLocation,
     destination,
     setDestination,
     routePoints,
+    setRoutePoints,
     route,
+    setRoute,
     profile,
     setProfile,
     obstaclePins,
     setObstaclePins,
     handleRouteSearch,
     loading,
+    routeWarning,
   } = useMap();
   const mapRef = useRef<MapView>(null);
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
   const [cameraOpen, setCameraOpen] = useState(false);
+
+  const routeColors = ["#0072B2", "#E69F00", "#009E73"];
   const [showInputs, setShowInputs] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
@@ -63,15 +74,21 @@ export default function MapScreen({ navigation, user }: Props) {
     });
   }, [route]);
 
+
   const handleLogout = async () => {
     await signOut(auth);
     navigation.navigate("Login");
   };
 
+  const selectedRoute =
+  route?.routes?.[selectedRouteIndex] ?? null;
+
+
   return (
     <SafeAreaView
-      style={[styles.container, cameraOpen && { paddingBottom: 0 }]}
+      style={[globalStyles.container, cameraOpen && { paddingBottom: 0 }]}
     >
+      <ScrollView>
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -112,82 +129,44 @@ export default function MapScreen({ navigation, user }: Props) {
         ))}
 
         {route?.routes?.map((r, index) => {
-          const colors = ["#007AFF", "#34C759", "#FF9500"];
-
           return (
             <Polyline
               key={index}
               coordinates={r.coords}
-              strokeWidth={index === 0 ? 4 : 2}
-              strokeColor={colors[index] || "gray"}
+              strokeWidth={index === selectedRouteIndex ? 4 : 2}
+              strokeColor={routeColors[index] || "gray"}
             />
           );
         })}
       </MapView>
 
       {!cameraOpen && showInputs && (
-        <View style={styles.topPanel}>
-          <View style={styles.loginButton}>
-            {user ? (
-              <Button onPress={handleLogout}>Kirjaudu ulos</Button>
-            ) : (
-              <Button onPress={() => navigation.navigate("Login")}>
-                Kirjaudu sisään
-              </Button>
-            )}
-          </View>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Lähtö"
-            value={startLocation}
-            onChangeText={setStartLocation}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Määränpää"
-            value={destination}
-            onChangeText={setDestination}
-          />
-
-          <RadioButton.Group
-            onValueChange={(value: string) => setProfile(value as Profile)}
-            value={profile}
-          >
-            <View style={styles.option}>
-              <RadioButton value="foot-walking" />
-              <Text>Kävely</Text>
-            </View>
-            <View style={styles.option}>
-              <RadioButton value="wheelchair" />
-              <Text>Pyörätuoli</Text>
-            </View>
-          </RadioButton.Group>
-
-          <Button
-            mode="contained"
-            icon="magnify"
+        <>
+          <MapControls
+            startLocation={startLocation}
+            setStartLocation={setStartLocation}
+            destination={destination}
+            setDestination={setDestination}
+            profile={profile}
+            setProfile={setProfile}
+            handleRouteSearch={handleRouteSearch}
             loading={loading}
-            disabled={loading}
-            style={{ marginVertical: 8, alignSelf: "center" }}
-            onPress={handleRouteSearch}
-          >
-            Hae Reitti
-          </Button>
-        </View>
+          />
+        </>
       )}
 
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" />
-          <Text>Haetaan reittiä...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[globalStyles.text, { marginTop: spacing.sm }]}>
+            Haetaan reittiä...
+          </Text>
         </View>
       )}
 
       {selectedPin && (
-        <View style={styles.bottomSheet}>
-          <Text style={styles.sheetTitle}>{selectedPin.message}</Text>
+        <View style={[globalStyles.card, styles.bottomSheet]}>
+          <Text style={globalStyles.heading}>{selectedPin.message}</Text>
 
           {selectedPin.image && (
             <Image
@@ -195,8 +174,12 @@ export default function MapScreen({ navigation, user }: Props) {
               style={styles.sheetImage}
             />
           )}
-
-          <Button onPress={() => setSelectedPin(null)}>Sulje</Button>
+          <TouchableOpacity
+            style={[globalStyles.button, { marginTop: spacing.md }]}
+            onPress={() => setSelectedPin(null)}
+          >
+            <Text style={globalStyles.buttonText}>Sulje</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -204,7 +187,7 @@ export default function MapScreen({ navigation, user }: Props) {
         <FAB
           icon="plus"
           label="Lisää ilmoitus"
-          style={styles.fab}
+          style={!route ? styles.fabBottom : styles.fabUpper}
           onPress={() => setShowPinDialog(true)}
         />
       )}
@@ -236,14 +219,59 @@ export default function MapScreen({ navigation, user }: Props) {
       {!cameraOpen && (
         <>
           <View style={styles.info}>
-            <Text>
-              Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
-            </Text>
-            <Text>Jyrkkyys: {route?.steepnessSummaryValue ?? 0} %</Text>
-            <Text>Matka: {route?.steepnessSummaryDistance ?? 0} m</Text>
+            {routeWarning && (
+              <Text style={[globalStyles.text, { marginBottom: spacing.sm }]}>
+                {routeWarning}
+              </Text>
+            )}
+
+            <View style={styles.routeSelector}>
+              {route?.routes.map((_, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => setSelectedRouteIndex(index)}
+                  style={[
+                    styles.routeButton,
+                    index === selectedRouteIndex && styles.routeButtonActive,
+                  ]}
+                >
+                  <View
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 5,
+                      backgroundColor: routeColors[index],
+                      marginBottom: 4,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      color:
+                        index === selectedRouteIndex
+                          ? "#fff"
+                          : colors.textPrimary,
+                    }}
+                  >
+                    {`Vaihtoehto ${index + 1}`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+              {selectedRoute && (
+                <View style={styles.routeDetails}>
+                  <Text>
+                    Matka: {selectedRoute.steepnessSummaryDistance ?? 0} m
+                  </Text>
+                  <Text>
+                    Enimmäkseen reitti on tyyppiä: {selectedRoute.waytype}
+                  </Text>
+                </View>
+              )}
           </View>
         </>
       )}
+      </ScrollView>
       <StatusBar style="auto" />
     </SafeAreaView>
   );
@@ -255,32 +283,7 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    minHeight: 600,
-  },
-  topPanel: {
-    position: "absolute",
-    top: 30,
-    left: 10,
-    right: 10,
-    backgroundColor: "white",
-    padding: 10,
-    borderRadius: 12,
-    elevation: 5,
-  },
-  input: {
-    height: 30,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    margin: 5,
-    borderRadius: 8,
-    marginVertical: 4,
-  },
-  option: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 4,
+    minHeight: 500,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -295,20 +298,44 @@ const styles = StyleSheet.create({
   },
 
   info: {
-    position: "absolute",
-    bottom: 0,
-    left: 12,
-    right: 12,
-    backgroundColor: "white",
+    marginTop: 40,
+    backgroundColor: colors.surface,
     padding: 10,
-    maxHeight: 80,
+    maxHeight: 200,
+    borderRadius: 12,
   },
-  fab: {
+  routeSelector: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 8,
+  },
+  routeButton: {
+    alignItems: "center",
+    padding: 6,
+    borderRadius: 8,
+  },
+  routeButtonActive: {
+    backgroundColor: colors.secondary,
+  },
+  routeDetails: {
+    marginTop: 5,
+  },
+
+  fabUpper: {
+    backgroundColor: colors.surface,
     position: "absolute",
     right: 16,
-    bottom: 16,
+    bottom: 130,
     zIndex: 20,
   },
+  fabBottom: {
+    backgroundColor: colors.surface,
+    position: "absolute",
+    right: 16,
+    bottom: 100,
+    zIndex: 20,
+  },
+
   pinPopup: {
     width: 180,
     padding: 10,
@@ -338,4 +365,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
   },
+  cancelButton: {
+  position: "absolute",
+  top: 100,
+  right: 16,
+  backgroundColor: "#d9534f",
+  padding: 10,
+  borderRadius: 8,
+  zIndex: 50,
+},
 });

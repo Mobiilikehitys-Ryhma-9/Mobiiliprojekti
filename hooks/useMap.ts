@@ -39,6 +39,7 @@ export function useMap() {
                         image: data.image,
                         latitude: data.latitude,
                         longitude: data.longitude,
+                        isBlockingRoute: data.isBlockingRoute,
                         category: data.category,
                         expiresAt: data.expiresAt
                     } as MapPin
@@ -51,24 +52,34 @@ export function useMap() {
     }, [])
 
     const handleRouteSearch = async () => {
+        setRoutePoints(null)
+        setRoute(null)
         setLoading(true)
         setRouteWarning(null)
         const start = await geoCodeAddress(startLocation)
         const end = await geoCodeAddress(destination)
         
         try {
-            if (!start || !end) return
+            if (!start) {
+                setRouteWarning('Lähtöosoitteen paikannus epäonnistui')
+                return
+            } else if (!end) {
+                setRouteWarning('Määränpään osoitteen paikannus epäonnistui')
+                return
+            }
             
             let data: RouteResponse
             setRoutePoints({ start, end })
+
+            const routeBlockingPins = obstaclePins.filter(p => p.isBlockingRoute)
 
             if (profile === 'foot-walking') {
                 data = await fetchFootwalkRoute(start, end)
                 setRoute(data)
             } else if (profile === 'wheelchair') {
                 try {
-                    data = obstaclePins?.length 
-                        ? await fetchWheelchairRoute(start, end, obstaclePins)
+                    data = obstaclePins.length > 0
+                        ? await fetchWheelchairRoute(start, end, routeBlockingPins)
                         : await fetchWheelchairRoute(start, end)
                     setRoute(data)
                 } catch (err) {
@@ -109,7 +120,9 @@ export function useMap() {
         destination, 
         setDestination,
         routePoints,
+        setRoutePoints,
         route,
+        setRoute,
         profile,
         setProfile,
         obstaclePins,
