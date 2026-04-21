@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    minHeight: 900,
+    minHeight: 500,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
