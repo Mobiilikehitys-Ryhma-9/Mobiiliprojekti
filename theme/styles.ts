@@ -47,6 +47,7 @@ export const globalStyles = {
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold' as 'bold'
+        
     },
 
     link: {
