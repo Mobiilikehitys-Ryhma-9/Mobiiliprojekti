@@ -1,13 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-  TextInput,
-} from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import {
   Button,
   ActivityIndicator,
@@ -92,7 +85,10 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
 
 
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1 }}>
+    <SafeAreaView
+      style={[globalStyles.container, cameraOpen && { paddingBottom: 0 }]}
+    >
+      <ScrollView>
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -137,7 +133,7 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
             <Polyline
               key={index}
               coordinates={r.coords}
-              strokeWidth={index === 0 ? 4 : 2}
+              strokeWidth={index === selectedRouteIndex ? 4 : 2}
               strokeColor={routeColors[index] || "gray"}
             />
           );
@@ -262,25 +258,20 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
               ))}
             </View>
 
-            {route && selectedRoute && !loading &&  (
-              <View style={styles.routeDetails}>
-                {/* <Text>
-                    Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
-                    </Text> */}
-                <Text>
-                  Jyrkkysarvo: {selectedRoute?.steepnessSummaryValue ?? 0}
-                </Text>
-                <Text>
-                  Matka: {selectedRoute.steepnessSummaryDistance ?? 0} m
-                </Text>
-                <Text>
-                  Enimmäkseen reitti on tyyppiä: {selectedRoute.waytype}
-                </Text>
-              </View>
-            )}
+              {selectedRoute && (
+                <View style={styles.routeDetails}>
+                  <Text>
+                    Matka: {selectedRoute.steepnessSummaryDistance ?? 0} m
+                  </Text>
+                  <Text>
+                    Enimmäkseen reitti on tyyppiä: {selectedRoute.waytype}
+                  </Text>
+                </View>
+              )}
           </View>
         </>
       )}
+      </ScrollView>
       <StatusBar style="auto" />
     </SafeAreaView>
   );
@@ -307,10 +298,7 @@ const styles = StyleSheet.create({
   },
 
   info: {
-    position: "absolute",
-    bottom: 0,
-    left: 12,
-    right: 12,
+    marginTop: 40,
     backgroundColor: colors.surface,
     padding: 10,
     maxHeight: 200,
@@ -334,15 +322,17 @@ const styles = StyleSheet.create({
   },
 
   fabUpper: {
+    backgroundColor: colors.surface,
     position: "absolute",
     right: 16,
     bottom: 130,
     zIndex: 20,
   },
   fabBottom: {
+    backgroundColor: colors.surface,
     position: "absolute",
     right: 16,
-    bottom: 16,
+    bottom: 100,
     zIndex: 20,
   },
 
