@@ -27,7 +27,8 @@ export const globalStyles = {
     input: {
         borderWidth: 1,
         borderColor: colors.border,
-        borderRadius: borderRadius.medium,
+        borderTopLeftRadius: borderRadius.medium,
+        borderTopRightRadius: borderRadius.medium,
         padding: spacing.md,
         fontSize: 16,
         backgroundColor: colors.background,
