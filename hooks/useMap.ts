@@ -52,13 +52,21 @@ export function useMap() {
     }, [])
 
     const handleRouteSearch = async () => {
+        setRoutePoints(null)
+        setRoute(null)
         setLoading(true)
         setRouteWarning(null)
         const start = await geoCodeAddress(startLocation)
         const end = await geoCodeAddress(destination)
         
         try {
-            if (!start || !end) return
+            if (!start) {
+                setRouteWarning('Lähtöosoitteen paikannus epäonnistui')
+                return
+            } else if (!end) {
+                setRouteWarning('Määränpään osoitteen paikannus epäonnistui')
+                return
+            }
             
             let data: RouteResponse
             setRoutePoints({ start, end })
@@ -112,7 +120,9 @@ export function useMap() {
         destination, 
         setDestination,
         routePoints,
+        setRoutePoints,
         route,
+        setRoute,
         profile,
         setProfile,
         obstaclePins,

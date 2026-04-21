@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import {
   Button,
   ActivityIndicator,
@@ -26,33 +26,35 @@ import { signOut } from "firebase/auth";
 import { globalStyles } from "../theme/styles";
 import { colors, spacing } from "../theme/theme";
 
-type MapScreenProps = BottomTabScreenProps<RootTabParamList, 'Kartta'> & {
+type MapScreenProps = BottomTabScreenProps<RootTabParamList, "Kartta"> & {
   user: any;
 };
 
-export default function MapScreen({  navigation, user }: MapScreenProps) {
+export default function MapScreen({ navigation, user }: MapScreenProps) {
   const {
     startLocation,
     setStartLocation,
     destination,
     setDestination,
     routePoints,
+    setRoutePoints,
     route,
+    setRoute,
     profile,
     setProfile,
     obstaclePins,
     setObstaclePins,
     handleRouteSearch,
     loading,
-    routeWarning
+    routeWarning,
   } = useMap();
   const mapRef = useRef<MapView>(null);
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
-  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0)
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
   const [cameraOpen, setCameraOpen] = useState(false);
 
-  const routeColors = ['#0072B2', '#E69F00', '#009E73']
+  const routeColors = ["#0072B2", "#E69F00", "#009E73"];
   const [showInputs, setShowInputs] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
@@ -72,17 +74,21 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
     });
   }, [route]);
 
+
   const handleLogout = async () => {
     await signOut(auth);
     navigation.navigate("Login");
   };
 
-  const selectedRoute = route?.routes?.[selectedRouteIndex]
+  const selectedRoute =
+  route?.routes?.[selectedRouteIndex] ?? null;
+
 
   return (
     <SafeAreaView
       style={[globalStyles.container, cameraOpen && { paddingBottom: 0 }]}
     >
+      <ScrollView>
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -127,7 +133,7 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
             <Polyline
               key={index}
               coordinates={r.coords}
-              strokeWidth={index === 0 ? 4 : 2}
+              strokeWidth={index === selectedRouteIndex ? 4 : 2}
               strokeColor={routeColors[index] || "gray"}
             />
           );
@@ -144,14 +150,17 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
             profile={profile}
             setProfile={setProfile}
             handleRouteSearch={handleRouteSearch}
-            loading={loading} />
+            loading={loading}
+          />
         </>
       )}
 
       {loading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[globalStyles.text, { marginTop: spacing.sm }]}>Haetaan reittiä...</Text>
+          <Text style={[globalStyles.text, { marginTop: spacing.sm }]}>
+            Haetaan reittiä...
+          </Text>
         </View>
       )}
 
@@ -165,8 +174,10 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
               style={styles.sheetImage}
             />
           )}
-          <TouchableOpacity style={[globalStyles.button, {marginTop: spacing.md}]} 
-            onPress={() => setSelectedPin(null)}>
+          <TouchableOpacity
+            style={[globalStyles.button, { marginTop: spacing.md }]}
+            onPress={() => setSelectedPin(null)}
+          >
             <Text style={globalStyles.buttonText}>Sulje</Text>
           </TouchableOpacity>
         </View>
@@ -205,7 +216,7 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
         </View>
       )}
 
-       {!cameraOpen && (
+      {!cameraOpen && (
         <>
           <View style={styles.info}>
             {routeWarning && (
@@ -216,26 +227,39 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
 
             <View style={styles.routeSelector}>
               {route?.routes.map((_, index) => (
-                <TouchableOpacity key={index}
+                <TouchableOpacity
+                  key={index}
                   onPress={() => setSelectedRouteIndex(index)}
-                  style={[styles.routeButton, index === selectedRouteIndex && styles.routeButtonActive]}
+                  style={[
+                    styles.routeButton,
+                    index === selectedRouteIndex && styles.routeButtonActive,
+                  ]}
+                >
+                  <View
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 5,
+                      backgroundColor: routeColors[index],
+                      marginBottom: 4,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      color:
+                        index === selectedRouteIndex
+                          ? "#fff"
+                          : colors.textPrimary,
+                    }}
                   >
-                    <View style={{width: 10, height: 10, borderRadius: 5, backgroundColor: routeColors[index], marginBottom: 4}} />
-                    <Text style={{color: index === selectedRouteIndex ? '#fff' : colors.textPrimary}}>
-                      {`Vaihtoehto ${index + 1}`}
-                    </Text>
-                  </TouchableOpacity>
+                    {`Vaihtoehto ${index + 1}`}
+                  </Text>
+                </TouchableOpacity>
               ))}
-              </View>
+            </View>
 
               {selectedRoute && (
                 <View style={styles.routeDetails}>
-                  {/* <Text>
-                    Reitistä laskettu: {route?.steepnessSummaryAmount ?? 0} %
-                    </Text> */}
-                  <Text>
-                    Jyrkkysarvo: {selectedRoute?.steepnessSummaryValue ?? 0}
-                  </Text>
                   <Text>
                     Matka: {selectedRoute.steepnessSummaryDistance ?? 0} m
                   </Text>
@@ -247,6 +271,7 @@ export default function MapScreen({  navigation, user }: MapScreenProps) {
           </View>
         </>
       )}
+      </ScrollView>
       <StatusBar style="auto" />
     </SafeAreaView>
   );
@@ -258,7 +283,7 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    minHeight: 600,
+    minHeight: 900,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -273,42 +298,41 @@ const styles = StyleSheet.create({
   },
 
   info: {
-    position: "absolute",
-    bottom: 0,
-    left: 12,
-    right: 12,
+    marginTop: 40,
     backgroundColor: colors.surface,
     padding: 10,
     maxHeight: 200,
-    borderRadius: 12
+    borderRadius: 12,
   },
   routeSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 8
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 8,
   },
   routeButton: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 6,
-    borderRadius: 8
+    borderRadius: 8,
   },
   routeButtonActive: {
-    backgroundColor: colors.secondary
+    backgroundColor: colors.secondary,
   },
   routeDetails: {
     marginTop: 5,
   },
 
   fabUpper: {
+    backgroundColor: colors.surface,
     position: "absolute",
     right: 16,
     bottom: 130,
     zIndex: 20,
   },
   fabBottom: {
+    backgroundColor: colors.surface,
     position: "absolute",
     right: 16,
-    bottom: 16,
+    bottom: 100,
     zIndex: 20,
   },
 
@@ -341,4 +365,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
   },
+  cancelButton: {
+  position: "absolute",
+  top: 100,
+  right: 16,
+  backgroundColor: "#d9534f",
+  padding: 10,
+  borderRadius: 8,
+  zIndex: 50,
+},
 });
