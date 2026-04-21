@@ -65,7 +65,7 @@ export default function PinUp({
       const location = await Location.getCurrentPositionAsync({});
       const duration = CATEGORY_DURATION[category];
       
-      let imagePath: string | undefined = undefined;
+      let imagePath: string | null = null;
       if (imageUri) {
         const uploadedUrl = await uploadImage(imageUri);
         if (uploadedUrl) imagePath = uploadedUrl
@@ -73,7 +73,7 @@ export default function PinUp({
 
       const newPin: MapPin = {
         message: Pinmessage,
-        image: imagePath,
+        image: imagePath ?? '',
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
         category: category,
