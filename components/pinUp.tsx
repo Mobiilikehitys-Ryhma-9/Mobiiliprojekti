@@ -160,7 +160,7 @@ export default function PinUp({
                 }
               >
                 <Picker.Item label="demo (1 min)" value="demo" />
-                <Picker.Item label="1h" value="short" />
+                <Picker.Item label="1 h" value="short" />
                 <Picker.Item label="24 h" value="medium" />
                 <Picker.Item label="48 h" value="long" />
                 <Picker.Item label="1 viikko" value="superLong" />

@@ -20,6 +20,7 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photosaving, setPhotoSaving] = useState(false);
 
   if (!permission?.granted) {
     requestPermission();
@@ -40,18 +41,29 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
 
         <View style={styles.controls}>
           <Button title="Retake" onPress={() => setPhotoUri(null)} />
+
           <Button
-            title="Use Photo"
+            title={photosaving ? "Saving..." : "Use Photo"}
+            disabled={photosaving}
             onPress={async () => {
-              if (!photoUri) return;
+              if (!photoUri || photosaving) return;
 
-              const image = {
-                uri: photoUri,
-              };
+              try {
+                setPhotoSaving(true);
 
-              const url = await uploadImage(image.uri); //LISÄTTY
-              console.log("CLOUDINARY URL:", url);
-              onPictureTaken(url ?? ''); //MUUTETTU (lähetetään URL eikä uri)
+                const image = {
+                  uri: photoUri,
+                };
+
+                const url = await uploadImage(image.uri); //LISÄTTY
+                console.log("CLOUDINARY URL:", url);
+
+                onPictureTaken(url ?? ""); //MUUTETTU (lähetetään URL eikä uri)
+              } catch (err) {
+                console.error("Upload failed:", err);
+              } finally {
+                setPhotoSaving(false);
+              }
             }}
           />
         </View>
