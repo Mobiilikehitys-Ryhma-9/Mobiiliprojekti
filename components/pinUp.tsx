@@ -132,6 +132,7 @@ export default function PinUp({
               placeholder="Kuvaus"
               value={Pinmessage}
               onChangeText={setPinmessage}
+              maxLength={50}
             />
 
             <View style={{ flexDirection: "row", alignItems: "center"}}>

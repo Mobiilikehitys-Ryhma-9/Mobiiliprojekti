@@ -51,7 +51,8 @@ export default function AlertScreen({ navigation }: Props) {
                 <Text style={styles.pinMessage}>{item.message}</Text>
 
                 <Text style={styles.pinLocation}>
-                  {item.latitude.toFixed(5)}, {item.longitude.toFixed(5)}
+                  {item.latitude?.toFixed?.(5) ?? "?"},{" "}
+                  {item.longitude?.toFixed?.(5) ?? "?"}
                 </Text>
 
                 <TouchableOpacity onPress={() => navigation.navigate("Kartta")}>
