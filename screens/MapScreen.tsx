@@ -1,6 +1,14 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+} from "react-native";
 import {
   Button,
   ActivityIndicator,
@@ -10,6 +18,7 @@ import {
 import MapView, { Polyline, Marker } from "react-native-maps";
 import { useMap } from "../hooks/useMap";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { BackHandler } from "react-native";
 import PinUp from "../components/pinUp";
 import PinUpCamera from "../components/pinUpCamera";
 
@@ -74,189 +83,203 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
     });
   }, [route]);
 
+  useEffect(() => {
+    const backAction = () => {
+      if (route?.routes?.length) {
+        setRoute(null);
+        setRoutePoints(null);
+        setSelectedRouteIndex(0);
+        return true;
+      }
+      return false;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction,
+    );
+    return () => backHandler.remove();
+  }, [route]);
 
   const handleLogout = async () => {
     await signOut(auth);
     navigation.navigate("Login");
   };
 
-  const selectedRoute =
-  route?.routes?.[selectedRouteIndex] ?? null;
-
+  const selectedRoute = route?.routes?.[selectedRouteIndex] ?? null;
 
   return (
     <SafeAreaView
       style={[globalStyles.container, cameraOpen && { paddingBottom: 0 }]}
     >
       <ScrollView>
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        initialRegion={{
-          latitude: routePoints?.start[1] ?? 65.01,
-          longitude: routePoints?.start[0] ?? 25.47,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }}
-      >
-        {routePoints && (
-          <>
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={{
+            latitude: routePoints?.start[1] ?? 65.01,
+            longitude: routePoints?.start[0] ?? 25.47,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          }}
+        >
+          {routePoints && (
+            <>
+              <Marker
+                coordinate={{
+                  latitude: routePoints.start[1],
+                  longitude: routePoints.start[0],
+                }}
+              />
+              <Marker
+                coordinate={{
+                  latitude: routePoints.end[1],
+                  longitude: routePoints.end[0],
+                }}
+              />
+            </>
+          )}
+
+          {obstaclePins.map((pin, index) => (
             <Marker
+              key={index}
               coordinate={{
-                latitude: routePoints.start[1],
-                longitude: routePoints.start[0],
+                latitude: pin.latitude,
+                longitude: pin.longitude,
               }}
+              pinColor="#f57600"
+              onPress={() => setSelectedPin(pin)}
             />
-            <Marker
-              coordinate={{
-                latitude: routePoints.end[1],
-                longitude: routePoints.end[0],
-              }}
+          ))}
+
+          {route?.routes?.map((r, index) => {
+            return (
+              <Polyline
+                key={index}
+                coordinates={r.coords}
+                strokeWidth={index === selectedRouteIndex ? 4 : 2}
+                strokeColor={routeColors[index] || "gray"}
+              />
+            );
+          })}
+        </MapView>
+
+        {!cameraOpen && showInputs && (
+          <>
+            <MapControls
+              startLocation={startLocation}
+              setStartLocation={setStartLocation}
+              destination={destination}
+              setDestination={setDestination}
+              profile={profile}
+              setProfile={setProfile}
+              handleRouteSearch={handleRouteSearch}
+              loading={loading}
             />
           </>
         )}
 
-        {obstaclePins.map((pin, index) => (
-          <Marker
-            key={index}
-            coordinate={{
-              latitude: pin.latitude,
-              longitude: pin.longitude,
-            }}
-            pinColor="#f57600"
-            onPress={() => setSelectedPin(pin)}
-          />
-        ))}
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[globalStyles.text, { marginTop: spacing.sm }]}>
+              Haetaan reittiä...
+            </Text>
+          </View>
+        )}
 
-        {route?.routes?.map((r, index) => {
-          return (
-            <Polyline
-              key={index}
-              coordinates={r.coords}
-              strokeWidth={index === selectedRouteIndex ? 4 : 2}
-              strokeColor={routeColors[index] || "gray"}
-            />
-          );
-        })}
-      </MapView>
+        {selectedPin && (
+          <View style={[globalStyles.card, styles.bottomSheet]}>
+            <Text style={globalStyles.heading}>{selectedPin.message}</Text>
 
-      {!cameraOpen && showInputs && (
-        <>
-          <MapControls
-            startLocation={startLocation}
-            setStartLocation={setStartLocation}
-            destination={destination}
-            setDestination={setDestination}
-            profile={profile}
-            setProfile={setProfile}
-            handleRouteSearch={handleRouteSearch}
-            loading={loading}
-          />
-        </>
-      )}
-
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[globalStyles.text, { marginTop: spacing.sm }]}>
-            Haetaan reittiä...
-          </Text>
-        </View>
-      )}
-
-      {selectedPin && (
-        <View style={[globalStyles.card, styles.bottomSheet]}>
-          <Text style={globalStyles.heading}>{selectedPin.message}</Text>
-
-          {selectedPin.image && (
-            <Image
-              source={{ uri: selectedPin.image }}
-              style={styles.sheetImage}
-            />
-          )}
-          <TouchableOpacity
-            style={[globalStyles.button, { marginTop: spacing.md }]}
-            onPress={() => setSelectedPin(null)}
-          >
-            <Text style={globalStyles.buttonText}>Sulje</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {user && !showPinDialog && !cameraOpen && !selectedPin && (
-        <FAB
-          icon="plus"
-          label="Lisää ilmoitus"
-          style={!route ? styles.fabBottom : styles.fabUpper}
-          onPress={() => setShowPinDialog(true)}
-        />
-      )}
-
-      <PinUp
-        pins={obstaclePins}
-        setPins={setObstaclePins}
-        visible={showPinDialog && !cameraOpen}
-        onClose={() => setShowPinDialog(false)}
-        onCameraOpen={setCameraOpen}
-        imageUri={capturedImage}
-        setImageUri={setCapturedImage}
-      />
-
-      {cameraOpen && (
-        <View style={StyleSheet.absoluteFillObject}>
-          <PinUpCamera
-            onPictureTaken={(uri) => {
-              setCameraOpen(false);
-              setShowPinDialog(true);
-              if (uri) {
-                setCapturedImage(uri);
-              }
-            }}
-          />
-        </View>
-      )}
-
-      {!cameraOpen && (
-        <>
-          <View style={styles.info}>
-            {routeWarning && (
-              <Text style={[globalStyles.text, { marginBottom: spacing.sm }]}>
-                {routeWarning}
-              </Text>
+            {selectedPin.image && (
+              <Image
+                source={{ uri: selectedPin.image }}
+                style={styles.sheetImage}
+              />
             )}
+            <TouchableOpacity
+              style={[globalStyles.button, { marginTop: spacing.md }]}
+              onPress={() => setSelectedPin(null)}
+            >
+              <Text style={globalStyles.buttonText}>Sulje</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-            <View style={styles.routeSelector}>
-              {route?.routes.map((_, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => setSelectedRouteIndex(index)}
-                  style={[
-                    styles.routeButton,
-                    index === selectedRouteIndex && styles.routeButtonActive,
-                  ]}
-                >
-                  <View
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 5,
-                      backgroundColor: routeColors[index],
-                      marginBottom: 4,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      color:
-                        index === selectedRouteIndex
-                          ? "#fff"
-                          : colors.textPrimary,
-                    }}
+        {user && !showPinDialog && !cameraOpen && !selectedPin && !route && (
+          <FAB
+            icon="plus"
+            label="Lisää ilmoitus"
+            style={!route ? styles.fabBottom : styles.fabUpper}
+            onPress={() => setShowPinDialog(true)}
+          />
+        )}
+
+        <PinUp
+          pins={obstaclePins}
+          setPins={setObstaclePins}
+          visible={showPinDialog && !cameraOpen}
+          onClose={() => setShowPinDialog(false)}
+          onCameraOpen={setCameraOpen}
+          imageUri={capturedImage}
+          setImageUri={setCapturedImage}
+        />
+
+        {cameraOpen && (
+          <View style={StyleSheet.absoluteFillObject}>
+            <PinUpCamera
+              onPictureTaken={(uri) => {
+                setCameraOpen(false);
+                setShowPinDialog(true);
+                if (uri) {
+                  setCapturedImage(uri);
+                }
+              }}
+            />
+          </View>
+        )}
+
+        {!cameraOpen && (
+          <>
+            <View style={styles.info}>
+              {routeWarning && (
+                <Text style={[globalStyles.text, { marginBottom: spacing.sm }]}>
+                  {routeWarning}
+                </Text>
+              )}
+
+              <View style={styles.routeSelector}>
+                {route?.routes.map((_, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => setSelectedRouteIndex(index)}
+                    style={[
+                      styles.routeButton,
+                      index === selectedRouteIndex && styles.routeButtonActive,
+                    ]}
                   >
-                    {`Vaihtoehto ${index + 1}`}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                    <View
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 5,
+                        backgroundColor: routeColors[index],
+                        marginBottom: 4,
+                      }}
+                    />
+                    <Text
+                      style={{
+                        color:
+                          index === selectedRouteIndex
+                            ? "#fff"
+                            : colors.textPrimary,
+                      }}
+                    >
+                      {`Vaihtoehto ${index + 1}`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
               {selectedRoute && (
                 <View style={styles.routeDetails}>
@@ -268,9 +291,9 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
                   </Text>
                 </View>
               )}
-          </View>
-        </>
-      )}
+            </View>
+          </>
+        )}
       </ScrollView>
       <StatusBar style="auto" />
     </SafeAreaView>
@@ -366,12 +389,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cancelButton: {
-  position: "absolute",
-  top: 100,
-  right: 16,
-  backgroundColor: "#d9534f",
-  padding: 10,
-  borderRadius: 8,
-  zIndex: 50,
-},
+    position: "absolute",
+    top: 100,
+    right: 16,
+    backgroundColor: "#d9534f",
+    padding: 10,
+    borderRadius: 8,
+    zIndex: 50,
+  },
 });
