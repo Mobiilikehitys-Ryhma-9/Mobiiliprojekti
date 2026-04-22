@@ -59,9 +59,9 @@ export default function AlertScreen({ navigation }: Props) {
                 </TouchableOpacity>
               </View>
 
-              {item.image && (
+              {item.image ? (
                 <Image source={{ uri: item.image }} style={styles.pinImage} />
-              )}
+              ) : null}
 
             </View>
 
@@ -79,7 +79,6 @@ export default function AlertScreen({ navigation }: Props) {
 
         )}
       />
-
     </SafeAreaView>
   );
 }
@@ -87,8 +86,8 @@ export default function AlertScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
 
   topRow: {
-  flexDirection: 'row',
-  alignItems: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginBottom: 5,
     marginTop: 5,
   },

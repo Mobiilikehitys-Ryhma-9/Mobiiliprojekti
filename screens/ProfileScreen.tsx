@@ -155,9 +155,9 @@ export default function ProfileScreen({ navigation }: Props) {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.pinCard}>
-                {item.image && (
+                {item.image ? (
                   <Image source={{ uri: item.image }} style={styles.pinImage} />
-                )}
+                ) : null}
 
                 <View style={styles.pinHeader}>
                   <Text style={styles.pinCategory}>{item.category}</Text>
