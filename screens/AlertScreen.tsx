@@ -21,7 +21,7 @@ export default function AlertScreen({ navigation }: Props) {
   // Hae käyttäjän ilmoitukset firebasesta
   useEffect(() => {
 
-    const q = query(collection(db, "pins"), limit(30));
+    const q = query(collection(db, "pins"), limit(15));
     return onSnapshot(q, (snap) => {
       const items: any[] = [];
       snap.forEach((doc) => items.push({ id: doc.id, ...doc.data() }));
@@ -37,7 +37,6 @@ export default function AlertScreen({ navigation }: Props) {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.pinCard}>
-
             <View style={styles.topRow}>
 
               <View style={styles.pinContent}>
@@ -72,7 +71,7 @@ export default function AlertScreen({ navigation }: Props) {
               </Text>
 
               <Text style={styles.pinDate}>
-                Vanhenee: {new Date(item.expiresAt).toLocaleString()}
+                Vanhenee: {item.expiresAt ? new Date(item.expiresAt).toLocaleString() : "?"}
               </Text>
             </View>
 
@@ -88,8 +87,8 @@ export default function AlertScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
 
   topRow: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
+  flexDirection: 'row',
+  alignItems: 'flex-start',
     marginBottom: 5,
     marginTop: 5,
   },
