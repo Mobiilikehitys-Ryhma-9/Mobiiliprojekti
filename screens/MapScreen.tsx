@@ -146,11 +146,48 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
     );
     return () => backHandler.remove();
   }, [route]);
+  useEffect(() => {
+    let subscription: Location.LocationSubscription | null = null
+    const startTracking = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigation.navigate("Login");
-  };
+      if (status !== 'granted') return
+      
+      const loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High
+      })
+
+      const coords = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude
+      }
+
+      setCurrentLocation(coords)
+
+      mapRef.current?.animateToRegion({
+        ...coords,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01
+      })
+
+      subscription = await Location.watchPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 5000,
+        distanceInterval: 10
+      }, (location) => {
+        setCurrentLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude
+        })
+      })
+    }
+
+    startTracking()
+
+    return () => {
+      subscription?.remove()
+    }
+  }, [])
 
   const selectedRoute = route?.routes?.[selectedRouteIndex] ?? null;
 
@@ -159,35 +196,34 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
       style={[globalStyles.container, cameraOpen && { paddingBottom: 0 }]}
     >
       <ScrollView>
-        
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          showsUserLocation={true}
-          followsUserLocation={false}
-          initialRegion={{
-            latitude: routePoints?.start[1] ?? 65.01,
-            longitude: routePoints?.start[0] ?? 25.47,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-        >
-          {routePoints && (
-            <>
-              <Marker
-                coordinate={{
-                  latitude: routePoints.start[1],
-                  longitude: routePoints.start[0],
-                }}
-              />
-              <Marker
-                coordinate={{
-                  latitude: routePoints.end[1],
-                  longitude: routePoints.end[0],
-                }}
-              />
-            </>
-          )}
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        showsUserLocation={true}
+        followsUserLocation={false}
+        initialRegion={{
+          latitude: routePoints?.start[1] ?? 65.01,
+          longitude: routePoints?.start[0] ?? 25.47,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }}
+      >
+        {routePoints && (
+          <>
+            <Marker
+              coordinate={{
+                latitude: routePoints.start[1],
+                longitude: routePoints.start[0],
+              }}
+            />
+            <Marker
+              coordinate={{
+                latitude: routePoints.end[1],
+                longitude: routePoints.end[0],
+              }}
+            />
+          </>
+        )}
 
           {obstaclePins.map((pin, index) => (
             <Marker
