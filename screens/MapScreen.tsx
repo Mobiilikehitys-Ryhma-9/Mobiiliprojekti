@@ -17,6 +17,7 @@ import {
 } from "react-native-paper";
 import MapView, { Polyline, Marker } from "react-native-maps";
 import { useMap } from "../hooks/useMap";
+import * as Location from "expo-location";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BackHandler } from "react-native";
 import PinUp from "../components/pinUp";
@@ -58,6 +59,10 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
     routeWarning,
   } = useMap();
   const mapRef = useRef<MapView>(null);
+  const [currentLocation, setCurrentLocation] = useState<{
+    latitude: number
+    longitude: number
+  } | null>(null);
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
@@ -83,6 +88,48 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
     });
   }, [route]);
 
+  useEffect(() => {
+    let subscription: Location.LocationSubscription | null = null
+    const startTracking = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== 'granted') return
+      
+      const loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High
+      })
+
+      const coords = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude
+      }
+
+      setCurrentLocation(coords)
+
+      mapRef.current?.animateToRegion({
+        ...coords,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01
+      })
+
+      subscription = await Location.watchPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 5000,
+        distanceInterval: 10
+      }, (location) => {
+        setCurrentLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude
+        })
+      })
+    }
+
+    startTracking()
+
+    return () => {
+      subscription?.remove()
+    }
+  }, [])
   useEffect(() => {
     const backAction = () => {
       if (route?.routes?.length) {
@@ -112,9 +159,12 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
       style={[globalStyles.container, cameraOpen && { paddingBottom: 0 }]}
     >
       <ScrollView>
+        
         <MapView
           ref={mapRef}
           style={styles.map}
+          showsUserLocation={true}
+          followsUserLocation={false}
           initialRegion={{
             latitude: routePoints?.start[1] ?? 65.01,
             longitude: routePoints?.start[0] ?? 25.47,
@@ -308,16 +358,18 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 500,
   },
+  centerFab: {
+    position: "absolute",
+    right: 16,
+    bottom: 180,
+    backgroundColor: colors.surface
+  },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(255,255,255,0.6)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
-  },
-
-  loginButton: {
-    padding: 8,
   },
 
   info: {
