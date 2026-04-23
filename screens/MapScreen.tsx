@@ -130,64 +130,65 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
       subscription?.remove()
     }
   }, [])
-  useEffect(() => {
-    const backAction = () => {
-      if (route?.routes?.length) {
-        setRoute(null);
-        setRoutePoints(null);
-        setSelectedRouteIndex(0);
-        return true;
-      }
-      return false;
-    };
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction,
-    );
-    return () => backHandler.remove();
-  }, [route]);
-  useEffect(() => {
-    let subscription: Location.LocationSubscription | null = null
-    const startTracking = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
+  // useEffect(() => {
+  //   const backAction = () => {
+  //     if (route?.routes?.length) {
+  //       setRoute(null);
+  //       setRoutePoints(null);
+  //       setSelectedRouteIndex(0);
+  //       return true;
+  //     }
+  //     return false;
+  //   };
+  //   const backHandler = BackHandler.addEventListener(
+  //     "hardwareBackPress",
+  //     backAction,
+  //   );
+  //   return () => backHandler.remove();
+  // }, [route]);
 
-      if (status !== 'granted') return
+  // useEffect(() => {
+  //   let subscription: Location.LocationSubscription | null = null
+  //   const startTracking = async () => {
+  //     const { status } = await Location.requestForegroundPermissionsAsync();
+
+  //     if (status !== 'granted') return
       
-      const loc = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High
-      })
+  //     const loc = await Location.getCurrentPositionAsync({
+  //       accuracy: Location.Accuracy.High
+  //     })
 
-      const coords = {
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude
-      }
+  //     const coords = {
+  //       latitude: loc.coords.latitude,
+  //       longitude: loc.coords.longitude
+  //     }
 
-      setCurrentLocation(coords)
+  //     setCurrentLocation(coords)
 
-      mapRef.current?.animateToRegion({
-        ...coords,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01
-      })
+  //     mapRef.current?.animateToRegion({
+  //       ...coords,
+  //       latitudeDelta: 0.01,
+  //       longitudeDelta: 0.01
+  //     })
 
-      subscription = await Location.watchPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-        timeInterval: 5000,
-        distanceInterval: 10
-      }, (location) => {
-        setCurrentLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude
-        })
-      })
-    }
+  //     subscription = await Location.watchPositionAsync({
+  //       accuracy: Location.Accuracy.Balanced,
+  //       timeInterval: 5000,
+  //       distanceInterval: 10
+  //     }, (location) => {
+  //       setCurrentLocation({
+  //         latitude: location.coords.latitude,
+  //         longitude: location.coords.longitude
+  //       })
+  //     })
+  //   }
 
-    startTracking()
+  //   startTracking()
 
-    return () => {
-      subscription?.remove()
-    }
-  }, [])
+  //   return () => {
+  //     subscription?.remove()
+  //   }
+  // }, [])
 
   const selectedRoute = route?.routes?.[selectedRouteIndex] ?? null;
 
@@ -195,7 +196,6 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
     <SafeAreaView
       style={[globalStyles.container, cameraOpen && { paddingBottom: 0 }]}
     >
-      <ScrollView>
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -325,7 +325,7 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
           </View>
         )}
 
-        {!cameraOpen && (
+        {!cameraOpen && (routeWarning || (route?.routes && route.routes.length > 0)) && (
           <>
             <View style={styles.info}>
               {routeWarning && (
@@ -380,7 +380,7 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
             </View>
           </>
         )}
-      </ScrollView>
+        
       <StatusBar style="auto" />
     </SafeAreaView>
   );
@@ -409,11 +409,11 @@ const styles = StyleSheet.create({
   },
 
   info: {
-    marginTop: 40,
     backgroundColor: colors.surface,
-    padding: 10,
-    maxHeight: 200,
+    padding: 12,
     borderRadius: 12,
+    marginHorizontal: 12,
+    marginTop: 8
   },
   routeSelector: {
     flexDirection: "row",
