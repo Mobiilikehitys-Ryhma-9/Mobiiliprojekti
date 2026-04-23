@@ -4,12 +4,11 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Button,
   Image,
 } from "react-native";
-import { useEffect, useState } from "react";
-import { useRef } from "react";
-import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import { useState, useRef } from "react";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { colors } from "../theme/theme";
 
 type Props = {
   onPictureTaken: (uri: string) => void;
@@ -29,7 +28,6 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
   const takePicture = async () => {
     const photo = await cameraRef.current?.takePictureAsync();
     if (photo) {
-      console.log("Photo taken:", photo.uri); 
       setPhotoUri(photo.uri);
     }
   };
@@ -40,19 +38,28 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
         <Image source={{ uri: photoUri }} style={styles.camera} />
 
         <View style={styles.controls}>
-          <Button title="Ota uudelleen" onPress={() => setPhotoUri(null)} />
+          <TouchableOpacity
+            style={[styles.btn, { backgroundColor: colors.surface }]}
+            onPress={() => setPhotoUri(null)}
+          >
+            <Text style={styles.btnText}>Ota uudelleen</Text>
+          </TouchableOpacity>
 
-          <Button
-            title={photosaving ? "Tallennetaan..." : "Käytä kuvaa"}
+          <TouchableOpacity
+            style={[
+              styles.btn,
+              { backgroundColor: colors.primary, opacity: photosaving ? 0.6 : 1 },
+            ]}
             disabled={photosaving}
             onPress={() => {
               if (!photoUri) return;
-
-              
-              console.log("Returning local URI to PinUp:", photoUri);
               onPictureTaken(photoUri);
             }}
-          />
+          >
+            <Text style={[styles.btnText, { color: "white" }]}>
+              {photosaving ? "Tallennetaan..." : "Käytä kuvaa"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -63,8 +70,19 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
       <CameraView style={styles.camera} ref={cameraRef} />
 
       <View style={styles.controls}>
-        <Button title="Takaisin" onPress={() => onPictureTaken("")} />
-        <Button title="Ota kuva" onPress={takePicture} />
+        <TouchableOpacity
+          style={[styles.btn, { backgroundColor: colors.surface }]}
+          onPress={() => onPictureTaken("")}
+        >
+          <Text style={styles.btnText}>Takaisin</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.btn, { backgroundColor: colors.primary }]}
+          onPress={takePicture}
+        >
+          <Text style={[styles.btnText, { color: "white" }]}>Ota kuva</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -73,22 +91,27 @@ export default function PinUpCamera({ onPictureTaken }: Props) {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "black",
     zIndex: 100,
   },
   camera: {
-    flex: 1,
-  },
-  btnCamera: {
-    position: "absolute",
-    bottom: 80,
-    alignSelf: "center",
+    ...StyleSheet.absoluteFillObject,
   },
   controls: {
     position: "absolute",
-    bottom: 80,
+    bottom: 40,
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-evenly",
+    paddingHorizontal: 20,
+  },
+  btn: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    elevation: 3,
+  },
+  btnText: {
+    fontSize: 16,
+    color: colors.textPrimary,
   },
 });
