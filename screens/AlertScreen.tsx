@@ -54,7 +54,13 @@ export default function AlertScreen({ navigation }: Props) {
                   {item.longitude?.toFixed?.(5) ?? "?"}
                 </Text>
 
-                <TouchableOpacity onPress={() => navigation.navigate("Kartta")}>
+                <TouchableOpacity onPress={() => navigation.navigate("Kartta", {
+                  targetLocation: {
+                    latitude: item.latitude,
+                    longitude: item.longitude
+                  },
+                  pin: item
+                })}>
                   <Text style={globalStyles.link}>Kartalla</Text>
                 </TouchableOpacity>
               </View>

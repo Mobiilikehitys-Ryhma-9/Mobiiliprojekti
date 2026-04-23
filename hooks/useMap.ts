@@ -18,7 +18,7 @@ export function useMap() {
     const [startLocation, setStartLocation] = useState<string>('')
     const [destination, setDestination] = useState<string>('')
     const [routePoints, setRoutePoints] = useState<RoutePoint | null>(null)
-    const [route, setRoute] = useState<RouteResponse | null>(null)
+    const [routeOption, setRouteOption] = useState<RouteResponse | null>(null)
     const [profile, setProfile] = useState<Profile>('foot-walking')
     const [obstaclePins, setObstaclePins] = useState<MapPin[]>([])
     const [loading, setLoading] = useState<boolean>(false)
@@ -53,7 +53,7 @@ export function useMap() {
 
     const handleRouteSearch = async () => {
         setRoutePoints(null)
-        setRoute(null)
+        setRouteOption(null)
         setLoading(true)
         setRouteWarning(null)
         const start = await geoCodeAddress(startLocation)
@@ -75,17 +75,17 @@ export function useMap() {
 
             if (profile === 'foot-walking') {
                 data = await fetchFootwalkRoute(start, end)
-                setRoute(data)
+                setRouteOption(data)
             } else if (profile === 'wheelchair') {
                 try {
                     data = obstaclePins.length > 0
                         ? await fetchWheelchairRoute(start, end, routeBlockingPins)
                         : await fetchWheelchairRoute(start, end)
-                    setRoute(data)
+                    setRouteOption(data)
                 } catch (err) {
                     console.log('Wheelchair route fetch failed, falling back to walking route')
                     data = await fetchFootwalkRoute(start, end)
-                    setRoute(data)
+                    setRouteOption(data)
                     setRouteWarning('Esteetöntä reittiä pyörätuolille ei löytynyt. Näytetään kävelyreitti.')
                 }
             }
@@ -121,8 +121,8 @@ export function useMap() {
         setDestination,
         routePoints,
         setRoutePoints,
-        route,
-        setRoute,
+        routeOption,
+        setRouteOption,
         profile,
         setProfile,
         obstaclePins,

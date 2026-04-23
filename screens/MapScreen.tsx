@@ -40,7 +40,7 @@ type MapScreenProps = BottomTabScreenProps<RootTabParamList, "Kartta"> & {
   user: any;
 };
 
-export default function MapScreen({ navigation, user }: MapScreenProps) {
+export default function MapScreen({ navigation, route, user }: MapScreenProps) {
   const {
     startLocation,
     setStartLocation,
@@ -48,8 +48,8 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
     setDestination,
     routePoints,
     setRoutePoints,
-    route,
-    setRoute,
+    routeOption,
+    setRouteOption,
     profile,
     setProfile,
     obstaclePins,
@@ -73,9 +73,9 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!route?.routes?.length) return;
+    if (!routeOption?.routes?.length) return;
 
-    const allCoords = route.routes.flatMap((r) => r.coords);
+    const allCoords = routeOption.routes.flatMap((r) => r.coords);
 
     mapRef.current?.fitToCoordinates(allCoords, {
       edgePadding: {
@@ -86,7 +86,39 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
       },
       animated: true,
     });
+    const backAction = () => {
+      if (routeOption?.routes?.length) {
+        setRouteOption(null);
+        setRoutePoints(null);
+        setSelectedRouteIndex(0);
+        return true;
+      }
+      return false;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction,
+    );
+    return () => backHandler.remove();
   }, [route]);
+
+  useEffect(() => {
+    if (!route.params?.targetLocation) return
+
+    const { latitude, longitude } = route.params.targetLocation
+    
+    mapRef.current?.animateToRegion({
+        latitude,
+        longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01
+    })
+
+    if (route.params.pin) {
+      setSelectedPin(route.params.pin)
+    }
+
+  }, [route.params])
 
   useEffect(() => {
     let subscription: Location.LocationSubscription | null = null
@@ -96,7 +128,7 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
       if (status !== 'granted') return
       
       const loc = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High
+        accuracy: Location.Accuracy.Balanced
       })
 
       const coords = {
@@ -130,67 +162,8 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
       subscription?.remove()
     }
   }, [])
-  // useEffect(() => {
-  //   const backAction = () => {
-  //     if (route?.routes?.length) {
-  //       setRoute(null);
-  //       setRoutePoints(null);
-  //       setSelectedRouteIndex(0);
-  //       return true;
-  //     }
-  //     return false;
-  //   };
-  //   const backHandler = BackHandler.addEventListener(
-  //     "hardwareBackPress",
-  //     backAction,
-  //   );
-  //   return () => backHandler.remove();
-  // }, [route]);
-
-  // useEffect(() => {
-  //   let subscription: Location.LocationSubscription | null = null
-  //   const startTracking = async () => {
-  //     const { status } = await Location.requestForegroundPermissionsAsync();
-
-  //     if (status !== 'granted') return
-      
-  //     const loc = await Location.getCurrentPositionAsync({
-  //       accuracy: Location.Accuracy.High
-  //     })
-
-  //     const coords = {
-  //       latitude: loc.coords.latitude,
-  //       longitude: loc.coords.longitude
-  //     }
-
-  //     setCurrentLocation(coords)
-
-  //     mapRef.current?.animateToRegion({
-  //       ...coords,
-  //       latitudeDelta: 0.01,
-  //       longitudeDelta: 0.01
-  //     })
-
-  //     subscription = await Location.watchPositionAsync({
-  //       accuracy: Location.Accuracy.Balanced,
-  //       timeInterval: 5000,
-  //       distanceInterval: 10
-  //     }, (location) => {
-  //       setCurrentLocation({
-  //         latitude: location.coords.latitude,
-  //         longitude: location.coords.longitude
-  //       })
-  //     })
-  //   }
-
-  //   startTracking()
-
-  //   return () => {
-  //     subscription?.remove()
-  //   }
-  // }, [])
-
-  const selectedRoute = route?.routes?.[selectedRouteIndex] ?? null;
+  
+  const selectedRoute = routeOption?.routes?.[selectedRouteIndex] ?? null;
 
   return (
     <SafeAreaView
@@ -237,7 +210,7 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
             />
           ))}
 
-          {route?.routes?.map((r, index) => {
+          {routeOption?.routes?.map((r, index) => {
             return (
               <Polyline
                 key={index}
@@ -325,7 +298,7 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
           </View>
         )}
 
-        {!cameraOpen && (routeWarning || (route?.routes && route.routes.length > 0)) && (
+        {!cameraOpen && (routeWarning || (routeOption?.routes && routeOption.routes.length > 0)) && (
           <>
             <View style={styles.info}>
               {routeWarning && (
@@ -335,7 +308,7 @@ export default function MapScreen({ navigation, user }: MapScreenProps) {
               )}
 
               <View style={styles.routeSelector}>
-                {route?.routes.map((_, index) => (
+                {routeOption?.routes.map((_, index) => (
                   <TouchableOpacity
                     key={index}
                     onPress={() => setSelectedRouteIndex(index)}

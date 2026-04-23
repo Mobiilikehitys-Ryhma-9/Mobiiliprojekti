@@ -1,5 +1,11 @@
 export type RootTabParamList = {
-  Kartta: undefined;
+  Kartta: {
+    targetLocation?: {
+      latitude: number
+      longitude: number
+    }
+    pin?: any
+  }
   Ilmoitukset: undefined;
   Profiili: undefined;
   Login: undefined;
