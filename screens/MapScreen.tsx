@@ -265,11 +265,11 @@ export default function MapScreen({ navigation, route, user }: MapScreenProps) {
           </View>
         )}
 
-        {user && !showPinDialog && !cameraOpen && !selectedPin && !route && (
+        {user && !showPinDialog && !cameraOpen && !selectedPin && !routeOption && (
           <FAB
             icon="plus"
             label="Lisää ilmoitus"
-            style={!route ? styles.fabBottom : styles.fabUpper}
+            style={!routeOption ? styles.fabBottom : styles.fabUpper}
             onPress={() => setShowPinDialog(true)}
           />
         )}
