@@ -100,7 +100,7 @@ export default function MapScreen({ navigation, route, user }: MapScreenProps) {
       backAction,
     );
     return () => backHandler.remove();
-  }, [route]);
+  }, [routeOption]);
 
   useEffect(() => {
     if (!route.params?.targetLocation) return
