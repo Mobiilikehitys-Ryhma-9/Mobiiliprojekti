@@ -7,6 +7,9 @@ import { MapPin } from "../types/Pin";
 import { Picker } from "@react-native-picker/picker";
 import { saveToFirebase } from "../services/pinService";
 import { uploadImage } from "../services/imageService";
+import { globalStyles } from "../theme/styles";
+import { MaterialIcons } from "@expo/vector-icons";
+import { colors } from "../theme/theme";
 
 type Props = {
   pins: MapPin[];
@@ -128,7 +131,7 @@ export default function PinUp({
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <TextInput
-              style={styles.writePin}
+              style={globalStyles.input}
               placeholder="Kuvaus"
               value={Pinmessage}
               onChangeText={setPinmessage}
@@ -139,18 +142,18 @@ export default function PinUp({
               <Checkbox 
                 status={isBlockingRoute ? "checked" : "unchecked"}
                 onPress={() => setIsBlockingRoute(!isBlockingRoute)} />
-              <Text>Estää reitin kokonaan</Text>
+              <Text style={globalStyles.text}>Estää reitin kokonaan</Text>
             </View>
             <Button
-              style={styles.cameraButton}
-              icon="camera"
+              style={[globalStyles.button, {marginHorizontal: 50}]}
               mode="outlined"
               onPress={() => {
                 onCameraOpen?.(true);
                 onClose();
               }}
             >
-              <Text style={styles.closeText}>Camera</Text>
+              <MaterialIcons name="camera-alt" size={18} color="#fff" />
+              <Text style={globalStyles.buttonText}>Ota kuva</Text>
             </Button>
 
             <View style={styles.picker}>
@@ -170,17 +173,17 @@ export default function PinUp({
             </View>
 
             <Button
-              style={styles.closeButton}
+              style={[globalStyles.button, {marginHorizontal: 50 }]} //{[globalStyles.button, styles.closeButton]}
               onPress={savePin}
               disabled={isSaving}
             >
-              <Text style={styles.closeText}>
-                {isSaving ? "Saving..." : "Save"}
+              <Text style={globalStyles.buttonText}>
+                {isSaving ? "Tallentaa..." : "Tallenna"}
               </Text>
             </Button>
 
-            <Button onPress={cancelPin}>
-              <Text style={styles.closeText}>Cancel</Text>
+            <Button style={[globalStyles.buttonCancel, {marginHorizontal: 50}]} onPress={cancelPin}>
+              <Text style={globalStyles.buttonTextCancel}>Takaisin</Text>
             </Button>
 
             {imageUri && (
@@ -225,17 +228,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontWeight: "500",
   },
-  closeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    fontWeight: "500",
-  },
   closeText: {
     fontWeight: "500",
   },
-  openButton: {},
-  writePin: {},
-  cameraButton: {},
   picker: {
     width: "100%",
     marginVertical: 10,

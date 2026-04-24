@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, FlatList } from "react-native";
 import { globalStyles } from '../theme/styles';
-import { colors } from '../theme/theme';
+import { colors, spacing } from '../theme/theme';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Profiili'>;
 
@@ -195,7 +195,7 @@ export default function ProfileScreen({ navigation }: Props) {
               {menuItems.map((item) => (
                 <TouchableOpacity
                   key={item.label}
-                  style={styles.menuButton}
+                  style={[globalStyles.button, {marginTop: spacing.lg}]}
                   onPress={item.onPress}
                 >
                   <Text style={globalStyles.buttonText}>{item.label}</Text>
@@ -207,8 +207,8 @@ export default function ProfileScreen({ navigation }: Props) {
         </View>
       ) : (
         <View style={{ alignItems: "center" }}>
-          <TouchableOpacity style={styles.signUpButton} onPress={() => navigation.navigate("Login")}>
-            <Text style={styles.signUpText}>Kirjaudu sisään</Text>
+          <TouchableOpacity style={globalStyles.button} onPress={() => navigation.navigate("Login")}>
+            <Text style={globalStyles.buttonText}>Kirjaudu sisään</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -226,18 +226,18 @@ export default function ProfileScreen({ navigation }: Props) {
             placeholder="Uusi käyttäjänimi"
             value={newUsername}
             onChangeText={setNewUsername}
-            style={styles.inputField}
+            style={globalStyles.input}
           />
 
           <TouchableOpacity
-            style={styles.menuButton}
+            style={globalStyles.button}
             onPress={() => {
               changeUsername(newUsername);
               setShowUsernameModal(false);
               setNewUsername("");
             }}
           >
-            <Text style={styles.menuButtonText}>Save</Text>
+            <Text style={globalStyles.buttonText}>Save</Text>
           </TouchableOpacity>
         </ModalWrapper>
       )}
@@ -257,7 +257,7 @@ export default function ProfileScreen({ navigation }: Props) {
             secureTextEntry
             value={oldPassword}
             onChangeText={setOldPassword}
-            style={styles.inputField}
+            style={globalStyles.input}
           />
 
           <TextInput
@@ -265,11 +265,11 @@ export default function ProfileScreen({ navigation }: Props) {
             secureTextEntry
             value={newPassword}
             onChangeText={setNewPassword}
-            style={styles.inputField}
+            style={globalStyles.input}
           />
 
           <TouchableOpacity
-            style={styles.menuButton}
+            style={globalStyles.button}
             onPress={async () => {
               try {
                 if (!auth.currentUser) return;
@@ -293,7 +293,7 @@ export default function ProfileScreen({ navigation }: Props) {
               }
             }}
           >
-            <Text style={styles.menuButtonText}>Save</Text>
+            <Text style={globalStyles.buttonText}>Save</Text>
           </TouchableOpacity>
         </ModalWrapper>
       )}
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
 
   cancelText: {
     marginTop: 20,
-    color: 'red',
+    color: colors.cancel,
     textAlign: "center",
     fontSize: 16,
     fontWeight: "bold"

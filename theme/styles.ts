@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors, typography, spacing, borderRadius } from "./theme"
+import { Button } from "react-native-paper";
 
 export const globalStyles = {
     container: {
@@ -38,15 +39,36 @@ export const globalStyles = {
     
     button: {
         backgroundColor: colors.primary,
-        paddingVertical: spacing.md,
+        paddingVertical: spacing.lg,
         paddingHorizontal: spacing.lg,
         borderRadius: borderRadius.small,
-        alignItems: 'center' as 'center'
+        flexDirection: 'row' as 'row',
+        alignItems: 'center' as 'center',
+        justifyContent: 'center' as 'center'
     },
     buttonText: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: 'bold' as 'bold'
+        fontWeight: 'bold' as 'bold',
+        marginLeft: 6
+    },
+
+    buttonCancel: {
+        backgroundColor: colors.background,
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.lg,
+        borderWidth: 2,
+        borderColor: colors.cancel,
+        borderRadius: borderRadius.small,
+        flexDirection: 'row' as 'row',
+        alignItems: 'center' as 'center',
+        justifyContent: 'center' as 'center'
+    },
+    buttonTextCancel: {
+        color: colors.cancel,
+        fontSize: 16,
+        fontWeight: 'bold' as 'bold',
+        marginLeft: 6
     },
 
     link: {

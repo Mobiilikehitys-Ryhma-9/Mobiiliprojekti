@@ -1,7 +1,7 @@
 export const colors = {
     primary:'#6200ee',// tai '#005fcc', 
-    
     secondary: '#333',
+    cancel: '#710117',
 
     background: '#fff',
     surface: '#f5f5f5',

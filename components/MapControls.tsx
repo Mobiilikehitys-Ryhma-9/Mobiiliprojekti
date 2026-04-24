@@ -152,15 +152,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center'
   },
-  // input: {
-  //   height: 30,
-  //   borderWidth: 1,
-  //   borderColor: '#ccc',
-  //   padding: 10,
-  //   margin: 5,
-  //   borderRadius: 8,
-  //   marginVertical: 4
-  // },
   iconBtn: {
     position: 'absolute',
     top: 20,
