@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { MaterialIcons } from '@expo/vector-icons';
 import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList } from "react-native";
 import { globalStyles } from '../theme/styles';
+import { borderRadius, colors, spacing } from '../theme/theme';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Ilmoitukset'>;
 
@@ -41,7 +42,7 @@ export default function AlertScreen({ navigation }: Props) {
 
               <View style={styles.pinContent}>
                 <View style={styles.pinHeader}>
-                  <Text style={styles.pinCategory}>{item.category}</Text>
+                  <Text style={globalStyles.heading}>{item.category}</Text>
                   {item.isBlockingRoute && (
                     <MaterialIcons name="block" size={20} color="red" />
                   )}
@@ -54,14 +55,16 @@ export default function AlertScreen({ navigation }: Props) {
                   {item.longitude?.toFixed?.(5) ?? "?"}
                 </Text>
 
-                <TouchableOpacity onPress={() => navigation.navigate("Kartta", {
-                  targetLocation: {
-                    latitude: item.latitude,
-                    longitude: item.longitude
-                  },
-                  pin: item
-                })}>
-                  <Text style={globalStyles.link}>Kartalla</Text>
+                <TouchableOpacity style={[globalStyles.button, {marginVertical: 2,marginTop: spacing.sm, alignSelf: 'flex-start'}]} 
+                  onPress={() => navigation.navigate("Kartta", {
+                    targetLocation: {
+                      latitude: item.latitude,
+                      longitude: item.longitude
+                    },
+                    pin: item
+                  })}>
+                  <MaterialIcons name="location-on" size={20} color="#fff" />
+                  <Text style={globalStyles.buttonText}>Näytä kartalla</Text>
                 </TouchableOpacity>
               </View>
 
@@ -99,11 +102,11 @@ const styles = StyleSheet.create({
   },
 
   pinCard: {
-    backgroundColor: "#fff",
-    padding: 12,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    marginVertical: spacing.sm,
+    marginHorizontal: spacing.md,
+    borderRadius: borderRadius.medium,
     elevation: 3,
     shadowColor: "#000",
     shadowOpacity: 0.1,
@@ -125,16 +128,9 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
 
-  pinCategory: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#444",
-  },
-
   pinMessage: {
-    fontSize: 15,
+    ...globalStyles.text,
     marginBottom: 6,
-    color: "#333",
     flexWrap: "wrap",
   },
 

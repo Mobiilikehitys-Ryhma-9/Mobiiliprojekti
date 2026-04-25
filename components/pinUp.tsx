@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Modal, Pressable, Image } from "react-native";
+import { StyleSheet, Text, View, Modal, Pressable, Image, Touchable, TouchableOpacity } from "react-native";
 import { TextInput, Button, Checkbox } from "react-native-paper";
 import React, { useState } from "react";
 import * as Location from "expo-location";
@@ -9,7 +9,7 @@ import { saveToFirebase } from "../services/pinService";
 import { uploadImage } from "../services/imageService";
 import { globalStyles } from "../theme/styles";
 import { MaterialIcons } from "@expo/vector-icons";
-import { colors } from "../theme/theme";
+import { colors, spacing } from "../theme/theme";
 
 type Props = {
   pins: MapPin[];
@@ -144,17 +144,17 @@ export default function PinUp({
                 onPress={() => setIsBlockingRoute(!isBlockingRoute)} />
               <Text style={globalStyles.text}>Estää reitin kokonaan</Text>
             </View>
-            <Button
-              style={[globalStyles.button, {marginHorizontal: 50}]}
-              mode="outlined"
+
+            <TouchableOpacity
+              style={[globalStyles.button, styles.cameraButton]}
               onPress={() => {
                 onCameraOpen?.(true);
                 onClose();
               }}
             >
-              <MaterialIcons name="camera-alt" size={18} color="#fff" />
+              <MaterialIcons name="camera-alt" size={20} color="#fff" />
               <Text style={globalStyles.buttonText}>Ota kuva</Text>
-            </Button>
+            </TouchableOpacity>
 
             <View style={styles.picker}>
               <Picker
@@ -227,6 +227,13 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     fontWeight: "500",
+  },
+  cameraButton: {
+    marginHorizontal: 50,
+    marginTop: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   closeText: {
     fontWeight: "500",
