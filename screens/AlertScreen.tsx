@@ -75,11 +75,11 @@ export default function AlertScreen({ navigation }: Props) {
             </View>
 
             <View style={styles.bottomContent}>
-              <Text style={styles.pinDate}>
+              <Text style={globalStyles.textSecondary}>
                 Luotu: {item.createdAt?.toDate?.().toLocaleString?.() ?? "?"}
               </Text>
 
-              <Text style={styles.pinDate}>
+              <Text style={globalStyles.textSecondary}>
                 Vanhenee: {item.expiresAt ? new Date(item.expiresAt).toLocaleString() : "?"}
               </Text>
             </View>

@@ -167,7 +167,7 @@ export default function MapScreen({ navigation, route, user }: MapScreenProps) {
 
   return (
     <SafeAreaView
-      style={[globalStyles.container, cameraOpen && { paddingBottom: 0 }]}
+      style={[styles.container, cameraOpen && { paddingBottom: 0 }]}
     >
       <MapView
         ref={mapRef}
@@ -361,7 +361,8 @@ export default function MapScreen({ navigation, route, user }: MapScreenProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    ...globalStyles.container,
+    paddingTop: 0
   },
   map: {
     flex: 1,

@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleProp, StyleSheet, TextStyle } from "react-native";
 import { colors, typography, spacing, borderRadius } from "./theme"
 import { Button } from "react-native-paper";
 
@@ -22,7 +22,11 @@ export const globalStyles = {
 
     text: {
         color: colors.textPrimary,
-        fontSize: 16
+        fontSize: typography.body.fontSize
+    },
+    textSecondary: {
+        color: colors.textSecondary,
+        fontSize: typography.body.fontSize
     },
 
     input: {
