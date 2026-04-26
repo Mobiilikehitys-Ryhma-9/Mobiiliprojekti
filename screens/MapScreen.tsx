@@ -382,11 +382,15 @@ const styles = StyleSheet.create({
   },
 
   info: {
-    backgroundColor: colors.surface,
-    padding: 12,
-    borderRadius: 12,
-    marginHorizontal: 12,
-    marginTop: 8
+   position: "absolute",
+   bottom: 10,
+   left: 10,
+   right: 10,
+   backgroundColor: colors.surface,
+   padding: 8,
+   borderRadius: 12,
+   zIndex: 25,
+   elevation: 6,
   },
   routeSelector: {
     flexDirection: "row",
