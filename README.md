@@ -20,7 +20,7 @@ Sovelluksen käyttäjä voi luoda sovellukseen tilin ja kirjautua sillä sisää
 
 
 ### :star: Luo pin-ilmoitus mahdollisista esteistä 
-Kirjautunut käyttäjä voi luoda pin-ilmoituksen näkemästään mahdollisesta esteestä ulkona ollessaan. Käyttäjä voi kirjoittaa esteelle kuvauksen, ottaa kuvan sekä laittaa havaittu este kategoriaan, joka määrittelee sen kuinka kauan ilmoitus on näkyvillä kartassa. Kun käyttäjä luo uuden ilmoituksen, sovellus hakee käyttäjän koordinaatit automaattisesti ja sijoittaa pinin kartalla niiden mukaisesti.
+Kirjautunut käyttäjä voi luoda pin-ilmoituksen näkemästään mahdollisesta esteestä ulkona ollessaan. Käyttäjä voi kirjoittaa esteelle kuvauksen, ottaa kuvan. Ilmoitukselle voi asettaa eri aikoja, jotka määrittelee sen kuinka kauan ilmoitus on näkyvillä kartassa. Käyttäjä voi määrittää ilmoituksen luonnissa onko havaittu este sellainen, jota reittihaku pitäisi välttää vai ei. Kun käyttäjä luo uuden ilmoituksen, sovellus hakee käyttäjän koordinaatit automaattisesti ja sijoittaa pinin kartalla niiden mukaisesti. 
 
 
 ### :star: Selaa luotuja pin-ilmoituksia
@@ -37,10 +37,9 @@ Sovellus on tehty React Nativella, jossa on käytetty TypeScriptiä. Sovellukses
 - [Google Firebase Firestore](https://firebase.google.com/)
 - [Cloudinary](https://cloudinary.com/)
 
-## Poster?
-
+## Poster
+<img width="525" height="700" alt="Esteetön karttasovellus_poster-1" src="https://github.com/user-attachments/assets/fd7cae28-ae77-4a67-b150-482ff2e700c3"/>
 
 ## Muu
-
 Ryhmän työtunti kirjaukset löytyvät täältä: [Työaikataulu](https://unioulu.sharepoint.com/:x:/r/sites/Mobiilikehitys-Ryhm9/_layouts/15/Doc.aspx?sourcedoc=%7B309F4982-980D-4279-B633-1D7A4FECF6A8%7D&file=Ty%C3%B6ajan%20seuranta.xlsx&action=default&mobileredirect=true)
 
