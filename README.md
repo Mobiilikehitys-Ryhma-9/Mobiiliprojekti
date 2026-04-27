@@ -6,6 +6,7 @@ Sovellus on tarkoitettu edistämään esteetööntä liikkumista kaupunkiympäri
 - [Toiminnot](#toiminnot)
 - [Käyttöönotto](#käyttöönotto)
 - [Technical information](#technical-information)
+- [Poster](#poster)
 - [Muu](#muu)
 
 
