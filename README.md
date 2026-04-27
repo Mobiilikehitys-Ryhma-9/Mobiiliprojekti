@@ -20,7 +20,7 @@ Sovelluksen käyttäjä voi luoda sovellukseen tilin ja kirjautua sillä sisää
 
 
 ### :star: Luo pin-ilmoitus mahdollisista esteistä 
-Kirjautunut käyttäjä voi luoda pin-ilmoituksen näkemästään mahdollisesta esteestä ulkona ollessaan. Käyttäjä voi kirjoittaa esteelle kuvauksen, ottaa kuvan. Ilmoitukselle voi asettaa eri aikoja, jotka määrittelee sen kuinka kauan ilmoitus on näkyvillä kartassa. Käyttäjä voi määrittää ilmoituksen luonnissa onko havaittu este sellainen, jota reittihaku pitäisi välttää vai ei. Kun käyttäjä luo uuden ilmoituksen, sovellus hakee käyttäjän koordinaatit automaattisesti ja sijoittaa pinin kartalla niiden mukaisesti. 
+Kirjautunut käyttäjä voi luoda pin-ilmoituksen näkemästään mahdollisesta esteestä ulkona ollessaan. Käyttäjä voi kirjoittaa esteelle kuvauksen ja ottaa kuvan. Ilmoitukselle voi asettaa eri aikoja, jotka määrittelee sen kuinka kauan ilmoitus on näkyvillä kartassa. Käyttäjä voi myös määrittää ilmoituksen luonnissa onko havaittu este sellainen, jota reittihaku pitäisi välttää vai ei. Kun käyttäjä luo uuden ilmoituksen, sovellus hakee käyttäjän koordinaatit automaattisesti ja sijoittaa pinin kartalla niiden mukaisesti. 
 
 
 ### :star: Selaa luotuja pin-ilmoituksia
